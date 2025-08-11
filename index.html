@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales - Cloud v2.1</title>
+    <title>Transporte de Materiales - Cloud v2.2</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -40,6 +40,7 @@
         th { background-color: #f2f7ff; }
         .grid-container-2 { display: grid; gap: 30px; grid-template-columns: 1fr 2fr; }
         .grid-container-4 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         #btnCancelarEdicion { display: none; }
@@ -53,6 +54,7 @@
             .header-container #btnPrint, .tabs, .tab-content:not(.active), form, .action-btn, .list-delete-btn, .card:has(.filter-form) { display: none; }
             h1, h2 { margin-top: 20px; }
             .tab-content.active { display: block !important; }
+            .card:has(#resumenProyectoMaterialTabla), .card:has(#resumenCombinadoTabla) { page-break-before: always; }
         }
     </style>
 </head>
@@ -115,15 +117,30 @@
                 <h2>📄 Historial de Viajes</h2>
                 <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
             </div>
+            <div class="card">
+                <h2>📊 Resúmenes de Volúmenes</h2>
+                <div class="summary-grid">
+                    <div><h3>Por Material</h3><table id="resumenMaterialTabla"><thead><tr><th>Material</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenMaterialBody"></tbody></table></div>
+                    <div><h3>Por Proyecto</h3><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenProyectoBody"></tbody></table></div>
+                    <div><h3>Por Chofer</h3><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenChoferBody"></tbody></table></div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📊 Resumen: Por Proyecto y Material</h2>
+                <div style="overflow-x:auto;">
+                    <table id="resumenProyectoMaterialTabla">
+                        <thead><tr><th>Proyecto</th><th>Material</th><th>Volumen Total (m³)</th></tr></thead>
+                        <tbody id="resumenProyectoMaterialBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        // --- PASO 1: IMPORTAR LAS FUNCIONES NECESARIAS DE FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, where, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        // --- PASO 2: TU CONFIGURACIÓN DE FIREBASE (YA INCLUIDA) ---
         const firebaseConfig = {
             apiKey: "AIzaSyDtDX8xK1m1VxjfRMFsDZXoAH36l8Izyz8",
             authDomain: "control-transporte-c4f61.firebaseapp.com",
@@ -133,12 +150,9 @@
             appId: "1:447956658904:web:81e9b40fb55107f93ec5ad"
         };
 
-        // --- PASO 3: INICIALIZAR FIREBASE Y FIRESTORE ---
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // --- INICIO DEL CÓDIGO DE LA APLICACIÓN ---
-        
         // --- Referencias a elementos del DOM ---
         const btnPrint = document.getElementById('btnPrint');
         const tabs = document.querySelectorAll('.tab-button');
@@ -151,6 +165,10 @@
         const selectNombres = document.getElementById('selectNombres');
         const selectPlaca = document.getElementById('selectPlaca');
         const volumenInput = document.getElementById('volumen');
+        const resumenMaterialBody = document.getElementById('resumenMaterialBody');
+        const resumenProyectoBody = document.getElementById('resumenProyectoBody');
+        const resumenChoferBody = document.getElementById('resumenChoferBody');
+        const resumenProyectoMaterialBody = document.getElementById('resumenProyectoMaterialBody');
         const indiceEdicionInput = document.getElementById('indiceEdicion');
         const formViajeTitulo = document.getElementById('formViajeTitulo');
         const btnSubmitViaje = document.getElementById('btnSubmitViaje');
@@ -182,7 +200,7 @@
         // --- LÓGICA DE IMPRESIÓN ---
         btnPrint.addEventListener('click', () => { window.print(); });
 
-        // --- LÓGICA GENÉRICA PARA LISTAS DE ADMINISTRACIÓN (CON FIREBASE) ---
+        // --- LÓGICA GENÉRICA PARA LISTAS DE ADMINISTRACIÓN ---
         const administrarLista = async (collectionName, form, inputId, listaUl, selectEl, nombreSingular) => {
             const render = async () => {
                 const q = query(collection(db, collectionName), orderBy("nombre"));
@@ -204,7 +222,6 @@
                     if (selectEl) selectEl.add(new Option(item.nombre, item.nombre));
                 });
             };
-
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const input = document.getElementById(inputId);
@@ -215,7 +232,6 @@
                     render();
                 }
             });
-
             listaUl.addEventListener('click', async e => {
                 if (e.target.classList.contains('list-delete-btn')) {
                     if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
@@ -224,12 +240,11 @@
                     }
                 }
             });
-
-            await render(); // Carga inicial
+            await render();
         };
         
-        // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS (CON FIREBASE) ---
-        let choferesCache = []; // Caché para no consultar la BD a cada rato en el formulario
+        // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS ---
+        let choferesCache = [];
         const administrarChoferes = async () => {
             const render = async () => {
                 const q = query(collection(db, "choferes"), orderBy("nombre"));
@@ -251,7 +266,6 @@
                 selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
                 Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
             };
-
             choferForm.addEventListener('submit', async e => {
                 e.preventDefault();
                 const nuevoChofer = {
@@ -263,7 +277,6 @@
                 choferForm.reset();
                 await render();
             });
-
             choferesLista.addEventListener('click', async e => {
                 if (e.target.classList.contains('list-delete-btn')) {
                     if (confirm(`¿Seguro que quieres borrar esta combinación?`)) {
@@ -297,16 +310,25 @@
             volumenInput.value = selectedOption.dataset.volumen || '';
         });
 
-        // --- LÓGICA PARA REGISTROS DE VIAJES ---
+        // --- LÓGICA PARA RENDERIZAR DATOS ---
+        const renderizarDatos = (docs) => {
+            renderizarRegistros(docs);
+            renderizarResumenes(docs);
+        };
+
+        const cargarRegistros = async (customQuery = null) => {
+            const q = customQuery ? customQuery : query(collection(db, "registros"), orderBy("fecha", "desc"));
+            const snapshot = await getDocs(q);
+            renderizarDatos(snapshot.docs);
+        };
+        
         const renderizarRegistros = (docs) => {
             registrosBody.innerHTML = '';
             registrosRecientesBody.innerHTML = '';
-            
-            // Ordenar por fecha descendente
-            docs.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
+            const registros = docs.map(doc => ({id: doc.id, ...doc.data()}));
+            registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
-            docs.forEach((doc, index) => {
-                const registro = { id: doc.id, ...doc.data() };
+            registros.forEach((registro, index) => {
                 const fila = document.createElement('tr');
                 const volumen = parseFloat(registro.volumen) || 0;
                 const numViajes = parseInt(registro.numViajes) || 0;
@@ -323,12 +345,41 @@
             });
         };
         
-        const cargarRegistros = async (customQuery = null) => {
-            const q = customQuery ? customQuery : query(collection(db, "registros"), orderBy("fecha", "desc"));
-            const snapshot = await getDocs(q);
-            renderizarRegistros(snapshot.docs);
+        const renderizarResumenes = (docs) => {
+            const volumenPorMaterial = {}, volumenPorProyecto = {}, volumenPorChofer = {}, volumenPorProyectoMaterial = {};
+            const registros = docs.map(doc => doc.data());
+
+            registros.forEach(r => {
+                const v = (parseFloat(r.volumen) || 0) * (parseInt(r.numViajes) || 0);
+                if (r.material) volumenPorMaterial[r.material] = (volumenPorMaterial[r.material] || 0) + v;
+                if (r.proyecto) volumenPorProyecto[r.proyecto] = (volumenPorProyecto[r.proyecto] || 0) + v;
+                if (r.nombres) volumenPorChofer[r.nombres] = (volumenPorChofer[r.nombres] || 0) + v;
+                if (r.proyecto && r.material) {
+                    const key = `${r.proyecto}|${r.material}`;
+                    volumenPorProyectoMaterial[key] = (volumenPorProyectoMaterial[key] || 0) + v;
+                }
+            });
+
+            const popularResumenSimple = (tbody, datos) => {
+                tbody.innerHTML = '';
+                Object.keys(datos).sort().forEach(k => {
+                    tbody.innerHTML += `<tr><td>${k}</td><td><b>${datos[k].toFixed(2)}</b></td></tr>`;
+                });
+            };
+            popularResumenSimple(resumenMaterialBody, volumenPorMaterial);
+            popularResumenSimple(resumenProyectoBody, volumenPorProyecto);
+            popularResumenSimple(resumenChoferBody, volumenPorChofer);
+            
+            resumenProyectoMaterialBody.innerHTML = '';
+            Object.keys(volumenPorProyectoMaterial).sort().forEach(key => {
+                const [proyecto, material] = key.split('|');
+                const fila = document.createElement('tr');
+                fila.innerHTML = `<td>${proyecto}</td><td>${material}</td><td><b>${volumenPorProyectoMaterial[key].toFixed(2)}</b></td>`;
+                resumenProyectoMaterialBody.appendChild(fila);
+            });
         };
         
+        // --- EVENTOS Y ACCIONES ---
         btnFiltrar.addEventListener('click', () => {
             const fechaInicio = fechaInicioInput.value;
             const fechaFin = fechaFinInput.value;
