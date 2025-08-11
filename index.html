@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales - Cloud v2.0</title>
+    <title>Transporte de Materiales - Cloud v2.1</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -40,7 +40,6 @@
         th { background-color: #f2f7ff; }
         .grid-container-2 { display: grid; gap: 30px; grid-template-columns: 1fr 2fr; }
         .grid-container-4 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         #btnCancelarEdicion { display: none; }
@@ -54,7 +53,6 @@
             .header-container #btnPrint, .tabs, .tab-content:not(.active), form, .action-btn, .list-delete-btn, .card:has(.filter-form) { display: none; }
             h1, h2 { margin-top: 20px; }
             .tab-content.active { display: block !important; }
-            .card:has(#resumenProyectoMaterialTabla) { page-break-before: always; }
         }
     </style>
 </head>
@@ -130,7 +128,7 @@
             apiKey: "AIzaSyDtDX8xK1m1VxjfRMFsDZXoAH36l8Izyz8",
             authDomain: "control-transporte-c4f61.firebaseapp.com",
             projectId: "control-transporte-c4f61",
-            storageBucket: "control-transporte-c4f61.firebasestorage.app",
+            storageBucket: "control-transporte-c4f61.appspot.com",
             messagingSenderId: "447956658904",
             appId: "1:447956658904:web:81e9b40fb55107f93ec5ad"
         };
@@ -251,7 +249,7 @@
                 });
                 
                 selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
-                nombresUnicos.forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
+                Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
             };
 
             choferForm.addEventListener('submit', async e => {
@@ -303,6 +301,10 @@
         const renderizarRegistros = (docs) => {
             registrosBody.innerHTML = '';
             registrosRecientesBody.innerHTML = '';
+            
+            // Ordenar por fecha descendente
+            docs.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
+
             docs.forEach((doc, index) => {
                 const registro = { id: doc.id, ...doc.data() };
                 const fila = document.createElement('tr');
@@ -331,7 +333,7 @@
             const fechaInicio = fechaInicioInput.value;
             const fechaFin = fechaFinInput.value;
             if (!fechaInicio || !fechaFin) { return alert('Por favor, seleccione una fecha de inicio y una de fin.'); }
-            const q = query(collection(db, "registros"), where("fecha", ">=", fechaInicio), where("fecha", "<=", fechaFin), orderBy("fecha", "desc"));
+            const q = query(collection(db, "registros"), where("fecha", ">=", fechaInicio), where("fecha", "<=", fechaFin));
             cargarRegistros(q);
         });
         btnMostrarTodo.addEventListener('click', () => {
@@ -398,8 +400,8 @@
                 cantera: selectCantera.value,
                 proyecto: selectProyecto.value
             };
-            if (!registro.nombres || !registro.placa || !registro.material) {
-                return alert('Por favor, seleccione un chofer, una placa y un material.');
+            if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha) {
+                return alert('Por favor, complete todos los campos requeridos, incluyendo la fecha.');
             }
             if (idParaEditar) {
                 await updateDoc(doc(db, "registros", idParaEditar), registro);
@@ -420,7 +422,6 @@
         };
 
         inicializarApp();
-    });
     </script>
 </body>
 </html>
