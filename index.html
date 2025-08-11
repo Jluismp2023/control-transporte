@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v25.0</title>
+    <title>Transporte de Materiales v25.1</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -234,20 +234,26 @@
     // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES ---
     const administrarListaSimple = async (collectionName, form, inputId, listaUl, selectEl, nombreSingular) => {
         const render = async () => {
-            const q = query(collection(db, collectionName), orderBy("nombre"));
+            // CORRECCIÓN: Se elimina el orderBy que causa error sin un índice.
+            const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
             
+            const items = [];
+            snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+            
+            // Se ordena la lista en el cliente (en el navegador)
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
             listaUl.innerHTML = '';
             if(selectEl) selectEl.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
             
-            snapshot.forEach(doc => {
-                const item = doc.data();
+            items.forEach(item => {
                 const li = document.createElement('li');
                 li.textContent = item.nombre;
                 const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'Borrar';
                 deleteBtn.className = 'list-delete-btn';
-                deleteBtn.dataset.id = doc.id;
+                deleteBtn.dataset.id = item.id;
                 li.appendChild(deleteBtn);
                 listaUl.appendChild(li);
                 if (selectEl) selectEl.add(new Option(item.nombre, item.nombre));
@@ -278,16 +284,21 @@
     let choferesVehiculosCache = [];
     const administrarChoferesVehiculos = async () => {
         const render = async () => {
-            const q = query(collection(db, "choferesVehiculos"), orderBy("nombre"));
+            // CORRECCIÓN: Se elimina el orderBy que causa error sin un índice.
+            const q = query(collection(db, "choferesVehiculos"));
             const snapshot = await getDocs(q);
             
+            const items = [];
+            snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+
+            // Se ordena la lista en el cliente (en el navegador)
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
+
             choferesVehiculosLista.innerHTML = '';
             const nombresUnicos = new Set();
-            choferesVehiculosCache = [];
+            choferesVehiculosCache = items; // Usamos la lista ordenada
 
-            snapshot.forEach(doc => {
-                const chofer = { id: doc.id, ...doc.data() };
-                choferesVehiculosCache.push(chofer);
+            items.forEach(chofer => {
                 nombresUnicos.add(chofer.nombre);
                 const li = document.createElement('li');
                 li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><button class="list-delete-btn" data-id="${chofer.id}">Borrar</button>`;
@@ -348,19 +359,19 @@
 
     // --- LÓGICA PARA RENDERIZAR DATOS ---
     const renderizarDatos = (docs) => {
-        renderizarRegistros(docs);
-        renderizarResumenes(docs);
+        const registrosData = docs.map(doc => ({id: doc.id, ...doc.data()}));
+        renderizarRegistros(registrosData);
+        renderizarResumenes(registrosData);
     };
 
     const cargarRegistros = async (customQuery = null) => {
-        const q = customQuery ? customQuery : query(collection(db, "registros"), orderBy("fecha", "desc"));
+        const q = customQuery ? customQuery : query(collection(db, "registros"));
         const snapshot = await getDocs(q);
         renderizarDatos(snapshot.docs);
     };
     
-    const renderizarRegistros = (docs) => {
+    const renderizarRegistros = (registros) => {
         registrosBody.innerHTML = '';
-        const registros = docs.map(doc => ({id: doc.id, ...doc.data()}));
         registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
         registros.forEach((registro, index) => {
@@ -378,9 +389,8 @@
         });
     };
     
-    const renderizarResumenes = (docs) => {
+    const renderizarResumenes = (registros) => {
         const volumenPorMaterial = {}, volumenPorProyecto = {}, volumenPorChofer = {}, volumenPorProyectoMaterial = {};
-        const registros = docs.map(doc => doc.data());
 
         registros.forEach(r => {
             const v = (parseFloat(r.volumen) || 0) * (parseInt(r.numViajes) || 0);
@@ -498,10 +508,10 @@
 
     // --- Carga inicial de datos ---
     const inicializarApp = async () => {
-        await administrarListaSimple('nombresDeChoferes', [], nombreChoferForm, 'nuevoNombreChofer', nombresChoferesLista, selectNombreAdmin, 'Nombre de Chofer');
-        await administrarListaSimple('materiales', [], materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
-        await administrarListaSimple('canteras', [], canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
-        await administrarListaSimple('proyectos', [], proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
+        await administrarListaSimple('nombresDeChoferes', nombreChoferForm, 'nuevoNombreChofer', nombresChoferesLista, selectNombreAdmin, 'Nombre de Chofer');
+        await administrarListaSimple('materiales', materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
+        await administrarListaSimple('canteras', canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
+        await administrarListaSimple('proyectos', proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
         await administrarChoferesVehiculos();
         await cargarRegistros();
     };
