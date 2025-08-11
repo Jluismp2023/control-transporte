@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v29.0</title>
+    <title>Transporte de Materiales - Cloud v1.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -53,7 +53,6 @@
             .header-container #btnPrint, .tabs, .tab-content:not(.active), form, .action-btn, .list-delete-btn, .card:has(.filter-form) { display: none; }
             h1, h2 { margin-top: 20px; }
             .tab-content.active { display: block !important; }
-            .card:has(#resumenProyectoMaterialTabla) { page-break-before: always; }
         }
     </style>
 </head>
@@ -92,8 +91,12 @@
             </form>
         </div>
         <div class="card">
-            <h2>📄 Historial de Viajes</h2>
+            <h2>📄 Historial Reciente</h2>
             <p>El historial completo y los filtros se encuentran en la pestaña "Resumen Detallado".</p>
+            <table id="registrosRecientesTabla">
+                <thead><tr><th>Fecha</th><th>Chofer</th><th>Material</th><th>Proyecto</th><th>Vol. Total</th></tr></thead>
+                <tbody id="registrosRecientesBody"></tbody>
+            </table>
         </div>
     </div>
 
@@ -115,7 +118,7 @@
                 <ul id="canterasLista"></ul>
             </div>
             <div class="card">
-                <h2>🏁 Administrar Proyectos</h2>
+                <h2>🏁 Proyectos</h2>
                 <form id="proyectoForm"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="btn-primary">Agregar</button></form>
                 <ul id="proyectosLista"></ul>
             </div>
@@ -133,25 +136,38 @@
             </div>
         </div>
         <div class="card">
-            <h2>📄 Historial de Viajes Filtrado</h2>
+            <h2>📄 Historial de Viajes</h2>
             <div style="overflow-x:auto;"> 
                 <table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table>
-            </div>
-        </div>
-        <div class="card">
-            <h2>📊 Resumen: Volumen por Proyecto y Material</h2>
-            <div style="overflow-x:auto;">
-                <table id="resumenProyectoMaterialTabla">
-                    <thead><tr><th>Proyecto</th><th>Material</th><th>Volumen Total (m³)</th></tr></thead>
-                    <tbody id="resumenProyectoMaterialBody"></tbody>
-                </table>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+    // ==================================================================
+    // PASO 1: CONFIGURACIÓN DE FIREBASE
+    // ==================================================================
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+
+    // ==================================================================
+    // PASO 2: INICIALIZAR FIREBASE Y FIRESTORE
+    // ==================================================================
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', () => {
+    
     // --- Lógica de Pestañas ---
     const tabs = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -170,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const choferesLista = document.getElementById('choferesLista');
     const transporteForm = document.getElementById('transporteForm');
     const registrosBody = document.getElementById('registrosBody');
+    const registrosRecientesBody = document.getElementById('registrosRecientesBody');
     const selectNombres = document.getElementById('selectNombres');
     const selectPlaca = document.getElementById('selectPlaca');
     const volumenInput = document.getElementById('volumen');
@@ -180,6 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const canteraForm = document.getElementById('canteraForm');
     const canterasLista = document.getElementById('canterasLista');
     const selectCantera = document.getElementById('selectCantera');
+    const proyectoForm = document.getElementById('proyectoForm');
+    const proyectosLista = document.getElementById('proyectosLista');
+    const selectProyecto = document.getElementById('selectProyecto');
     const materialForm = document.getElementById('materialForm');
     const materialesLista = document.getElementById('materialesLista');
     const selectMaterial = document.getElementById('selectMaterial');
@@ -187,109 +207,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const fechaFinInput = document.getElementById('fechaFin');
     const btnFiltrar = document.getElementById('btnFiltrar');
     const btnMostrarTodo = document.getElementById('btnMostrarTodo');
-    const proyectoForm = document.getElementById('proyectoForm');
-    const proyectosLista = document.getElementById('proyectosLista');
-    const selectProyecto = document.getElementById('selectProyecto');
-    const resumenProyectoMaterialBody = document.getElementById('resumenProyectoMaterialBody');
-
-    // --- Carga de datos desde localStorage ---
-    let choferes = JSON.parse(localStorage.getItem('choferesPlacas')) || [];
-    let registros = JSON.parse(localStorage.getItem('registrosTransporte')) || [];
-    let canteras = JSON.parse(localStorage.getItem('listaCanteras')) || [];
-    let materiales = JSON.parse(localStorage.getItem('listaMateriales')) || [];
-    let proyectos = JSON.parse(localStorage.getItem('listaProyectos')) || [];
-
+    
     // --- LÓGICA DE IMPRESIÓN ---
     btnPrint.addEventListener('click', () => { window.print(); });
 
-    // --- LÓGICA GENÉRICA PARA LISTAS ---
-    const administrarListaSimple = (nombreLista, arr, form, inputId, listaUl, selectEl, nombreSingular) => {
-        const render = () => {
+    // --- LÓGICA GENÉRICA PARA LISTAS DE ADMINISTRACIÓN (CON FIREBASE) ---
+    const administrarLista = (collectionName, form, inputId, listaUl, selectEl, nombreSingular) => {
+        const render = async () => {
+            const snapshot = await db.collection(collectionName).orderBy("nombre").get();
             listaUl.innerHTML = '';
-            arr.forEach((item, index) => {
-                const li = document.createElement('li'); li.textContent = item;
-                const deleteBtn = document.createElement('button'); deleteBtn.textContent = 'Borrar'; deleteBtn.className = 'list-delete-btn'; deleteBtn.dataset.index = index;
+            if(selectEl) selectEl.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
+            
+            snapshot.forEach(doc => {
+                const item = doc.data();
+                const li = document.createElement('li');
+                li.textContent = item.nombre;
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Borrar';
+                deleteBtn.className = 'list-delete-btn';
+                deleteBtn.dataset.id = doc.id;
                 li.appendChild(deleteBtn);
                 listaUl.appendChild(li);
+                if (selectEl) selectEl.add(new Option(item.nombre, item.nombre));
             });
         };
-        const popularSelect = () => {
-            if (!selectEl) return;
-            selectEl.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
-            arr.forEach(item => selectEl.add(new Option(item, item)));
-        };
-        const guardarYRenderizar = () => {
-            localStorage.setItem(nombreLista, JSON.stringify(arr));
-            render();
-            popularSelect();
-        };
-        form.addEventListener('submit', e => {
+        form.addEventListener('submit', async e => {
             e.preventDefault();
             const input = document.getElementById(inputId);
             const nuevoItem = input.value.trim();
-            if (nuevoItem && !arr.includes(nuevoItem)) {
-                arr.push(nuevoItem);
-                guardarYRenderizar();
+            if (nuevoItem) {
+                await db.collection(collectionName).add({ nombre: nuevoItem });
+                input.value = '';
+                render();
             }
-            input.value = '';
         });
-        listaUl.addEventListener('click', e => {
+        listaUl.addEventListener('click', async e => {
             if (e.target.classList.contains('list-delete-btn')) {
                 if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
-                    arr.splice(e.target.dataset.index, 1);
-                    guardarYRenderizar();
+                    await db.collection(collectionName).doc(e.target.dataset.id).delete();
+                    render();
                 }
             }
         });
-        render(); popularSelect();
+        render();
     };
     
-    administrarListaSimple('listaMateriales', materiales, materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
-    administrarListaSimple('listaCanteras', canteras, canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
-    administrarListaSimple('listaProyectos', proyectos, proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
+    administrarLista('materiales', materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
+    administrarLista('canteras', canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
+    administrarLista('proyectos', proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
 
-    // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS ---
-    const guardarYRenderizarChoferes = () => {
-        localStorage.setItem('choferesPlacas', JSON.stringify(choferes));
-        renderizarChoferes();
-        popularChoferSelect();
-    };
-    const renderizarChoferes = () => {
+    // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS (CON FIREBASE) ---
+    const renderizarChoferes = async () => {
+        const snapshot = await db.collection('choferes').orderBy("nombre").get();
         choferesLista.innerHTML = '';
-        choferes.forEach((chofer, index) => {
+        const nombresUnicos = new Set();
+        const choferesData = [];
+
+        snapshot.forEach(doc => {
+            const chofer = { id: doc.id, ...doc.data() };
+            choferesData.push(chofer);
+            nombresUnicos.add(chofer.nombre);
+
             const li = document.createElement('li');
-            li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><button class="list-delete-btn" data-index="${index}">Borrar</button>`;
+            li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><button class="list-delete-btn" data-id="${chofer.id}">Borrar</button>`;
             choferesLista.appendChild(li);
         });
-    };
-    const popularChoferSelect = () => {
-        const nombresUnicos = [...new Set(choferes.map(c => c.nombre))];
+        
         selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
         nombresUnicos.forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
+
+        return choferesData; // Devolvemos los datos para usarlos en el selector de placas
     };
-    choferForm.addEventListener('submit', e => {
+    
+    let choferesCache = []; // Caché para no consultar la BD a cada rato
+    choferForm.addEventListener('submit', async e => {
         e.preventDefault();
-        choferes.push({ nombre: document.getElementById('nuevoNombre').value.trim(), placa: document.getElementById('nuevaPlaca').value.trim().toUpperCase(), volumen: document.getElementById('nuevoVolumen').value });
-        guardarYRenderizarChoferes();
+        const nuevoChofer = {
+            nombre: document.getElementById('nuevoNombre').value.trim(),
+            placa: document.getElementById('nuevaPlaca').value.trim().toUpperCase(),
+            volumen: document.getElementById('nuevoVolumen').value
+        };
+        await db.collection('choferes').add(nuevoChofer);
         choferForm.reset();
+        choferesCache = await renderizarChoferes();
     });
-    choferesLista.addEventListener('click', e => {
+    choferesLista.addEventListener('click', async e => {
         if (e.target.classList.contains('list-delete-btn')) {
-            const index = e.target.dataset.index;
-            if (confirm(`¿Seguro que quieres borrar la combinación ${choferes[index].nombre} - ${choferes[index].placa}?`)) {
-                choferes.splice(index, 1);
-                guardarYRenderizarChoferes();
+            if (confirm(`¿Seguro que quieres borrar esta combinación?`)) {
+                await db.collection('choferes').doc(e.target.dataset.id).delete();
+                choferesCache = await renderizarChoferes();
             }
         }
     });
-    
-    // --- LÓGICA DE FORMULARIO DE VIAJE ---
+
     selectNombres.addEventListener('change', () => {
         const nombreSeleccionado = selectNombres.value;
         selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
         volumenInput.value = '';
         if (nombreSeleccionado) {
-            const vehiculosDelChofer = choferes.filter(c => c.nombre === nombreSeleccionado);
+            const vehiculosDelChofer = choferesCache.filter(c => c.nombre === nombreSeleccionado);
             vehiculosDelChofer.forEach(v => {
                 const option = new Option(`${v.placa} (${v.volumen} m³)`, v.placa);
                 option.dataset.volumen = v.volumen;
@@ -305,52 +321,50 @@ document.addEventListener('DOMContentLoaded', () => {
         volumenInput.value = selectedOption.dataset.volumen || '';
     });
     
-    // --- LÓGICA PARA RENDERIZAR REGISTROS Y RESÚMENES ---
-    const renderizarDatos = (listaRegistros) => {
-        renderizarRegistros(listaRegistros);
-        renderizarResumenes(listaRegistros);
-    };
-
-    const guardarYRenderizarTodo = () => {
-        localStorage.setItem('registrosTransporte', JSON.stringify(registros));
-        fechaInicioInput.value = '';
-        fechaFinInput.value = '';
-        renderizarDatos(registros.map((r, i) => ({...r, originalIndex: i})));
-    };
-
-    const renderizarRegistros = (lista) => {
+    // --- LÓGICA PARA REGISTROS DE VIAJES (CON FIREBASE) ---
+    const renderizarRegistros = async (querySnapshot) => {
         registrosBody.innerHTML = '';
-        
-        // --- CÓDIGO AÑADIDO PARA ORDENAR POR FECHA (MÁS RECIENTE PRIMERO) ---
-        const listaOrdenada = [...lista].sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-        listaOrdenada.forEach((registro, index) => {
+        registrosRecientesBody.innerHTML = '';
+        let count = 0;
+        querySnapshot.forEach(doc => {
+            const registro = { id: doc.id, ...doc.data() };
             const fila = document.createElement('tr');
             const volumen = parseFloat(registro.volumen) || 0;
             const numViajes = parseInt(registro.numViajes) || 0;
             const volumenTotal = (volumen * numViajes).toFixed(2);
+            
             fila.innerHTML = `
-                <td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td>
+                <td>${count + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td>
                 <td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td>
                 <td>${registro.volumen}</td><td>${registro.numViajes}</td><td><b>${volumenTotal}</b></td>
-                <td><button class="action-btn edit-btn" data-index="${registro.originalIndex}">Modificar</button><button class="action-btn delete-btn delete-trip-btn" data-index="${registro.originalIndex}">Borrar</button></td>`;
+                <td><button class="action-btn edit-btn" data-id="${registro.id}">Modificar</button><button class="action-btn delete-btn" data-id="${registro.id}">Borrar</button></td>`;
             registrosBody.appendChild(fila);
+
+            if (count < 5) {
+                const filaReciente = document.createElement('tr');
+                filaReciente.innerHTML = `<td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.material}</td><td>${registro.proyecto}</td><td><b>${volumenTotal}</b></td>`;
+                registrosRecientesBody.appendChild(filaReciente);
+            }
+            count++;
         });
     };
     
-    registrosBody.addEventListener('click', e => {
-        const index = e.target.dataset.index;
-        if (e.target.classList.contains('delete-trip-btn')) {
+    registrosBody.addEventListener('click', async e => {
+        const docId = e.target.dataset.id;
+        if (!docId) return;
+
+        if (e.target.classList.contains('delete-btn')) {
             if (confirm(`¿Seguro que quieres borrar este viaje?`)) {
-                registros.splice(index, 1);
-                guardarYRenderizarTodo();
+                await db.collection('registros').doc(docId).delete();
+                cargarRegistros();
             }
         }
         if (e.target.classList.contains('edit-btn')) {
+            const doc = await db.collection('registros').doc(docId).get();
+            const registroAEditar = doc.data();
             tabs[0].click();
             formViajeTitulo.textContent = `✍️ Modificando Viaje`;
-            indiceEdicionInput.value = index;
-            const registroAEditar = registros[index];
+            indiceEdicionInput.value = docId;
             selectNombres.value = registroAEditar.nombres;
             selectNombres.dispatchEvent(new Event('change'));
             setTimeout(() => {
@@ -381,29 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     btnCancelarEdicion.addEventListener('click', cancelarEdicion);
 
-    const renderizarResumenes = (lista) => {
-        const volumenPorProyectoMaterial = {};
-        
-        lista.forEach(r => {
-            if (r.proyecto && r.material) {
-                const v = (parseFloat(r.volumen) || 0) * (parseInt(r.numViajes) || 0);
-                const key = `${r.proyecto}|${r.material}`;
-                volumenPorProyectoMaterial[key] = (volumenPorProyectoMaterial[key] || 0) + v;
-            }
-        });
-
-        resumenProyectoMaterialBody.innerHTML = '';
-        Object.keys(volumenPorProyectoMaterial).sort().forEach(key => {
-            const [proyecto, material] = key.split('|');
-            const fila = document.createElement('tr');
-            fila.innerHTML = `<td>${proyecto}</td><td>${material}</td><td><b>${volumenPorProyectoMaterial[key].toFixed(2)}</b></td>`;
-            resumenProyectoMaterialBody.appendChild(fila);
-        });
-    };
-
-    transporteForm.addEventListener('submit', e => {
+    transporteForm.addEventListener('submit', async e => {
         e.preventDefault();
-        const indexParaEditar = indiceEdicionInput.value;
+        const idParaEditar = indiceEdicionInput.value;
         const registro = {
             fecha: document.getElementById('fecha').value,
             nombres: selectNombres.value,
@@ -418,16 +412,21 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Por favor, seleccione un chofer, una placa y un material.');
             return;
         }
-        if (indexParaEditar !== '') {
-            registros[indexParaEditar] = registro;
+        if (idParaEditar) {
+            await db.collection('registros').doc(idParaEditar).update(registro);
         } else {
-            registros.push(registro);
+            await db.collection('registros').add(registro);
         }
-        guardarYRenderizarTodo();
+        cargarRegistros();
         cancelarEdicion();
     });
 
-    // --- LÓGICA DE FILTRADO POR FECHA ---
+    // --- LÓGICA DE CARGA Y FILTRADO ---
+    const cargarRegistros = async (query = db.collection('registros').orderBy('fecha', 'desc')) => {
+        const snapshot = await query.get();
+        renderizarRegistros(snapshot.docs);
+    };
+
     btnFiltrar.addEventListener('click', () => {
         const fechaInicio = fechaInicioInput.value;
         const fechaFin = fechaFinInput.value;
@@ -435,18 +434,25 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Por favor, seleccione una fecha de inicio y una de fin.');
             return;
         }
-        const registrosFiltrados = registros
-            .map((registro, index) => ({...registro, originalIndex: index}))
-            .filter(r => r.fecha >= fechaInicio && r.fecha <= fechaFin);
-        renderizarDatos(registrosFiltrados);
+        const query = db.collection('registros')
+            .where('fecha', '>=', fechaInicio)
+            .where('fecha', '<=', fechaFin)
+            .orderBy('fecha', 'desc');
+        cargarRegistros(query);
     });
     btnMostrarTodo.addEventListener('click', () => {
-        guardarYRenderizarTodo();
+        fechaInicioInput.value = '';
+        fechaFinInput.value = '';
+        cargarRegistros();
     });
 
     // --- Carga inicial de datos ---
-    guardarYRenderizarChoferes();
-    guardarYRenderizarTodo();
+    const inicializarApp = async () => {
+        choferesCache = await renderizarChoferes();
+        cargarRegistros();
+    };
+
+    inicializarApp();
 });
 </script>
 
