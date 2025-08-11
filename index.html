@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v25.1</title>
+    <title>Transporte de Materiales v26.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -69,7 +69,7 @@
     </div>
 
     <div class="tabs">
-        <button class="tab-button active" data-tab="tab-registro">Registro y Viajes</button>
+        <button class="tab-button active" data-tab="tab-registro">Registro de Viajes</button>
         <button class="tab-button" data-tab="tab-admin">Administración</button>
         <button class="tab-button" data-tab="tab-summary">Resúmenes</button>
     </div>
@@ -94,18 +94,12 @@
             </form>
         </div>
         <div class="card">
-            <h2>🔎 Filtrar por Fecha</h2>
-            <div class="filter-form">
-                <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
-                <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
-                <button id="btnFiltrar" class="btn-primary">Filtrar</button>
-                <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
-            </div>
-        </div>
-        <div class="card">
-            <h2>📄 Historial de Viajes</h2>
-            <div style="overflow-x:auto;"> 
-                <table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table>
+            <h2>📄 Historial Reciente (Últimos 5 Viajes)</h2>
+            <div style="overflow-x:auto;">
+                <table id="registrosRecientesTabla">
+                    <thead><tr><th>Fecha</th><th>Chofer</th><th>Material</th><th>Proyecto</th><th>Vol. Total</th></tr></thead>
+                    <tbody id="registrosRecientesBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -146,6 +140,21 @@
     </div>
 
     <div id="tab-summary" class="tab-content">
+        <div class="card">
+            <h2>🔎 Filtrar por Fecha</h2>
+            <div class="filter-form">
+                <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
+                <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
+                <button id="btnFiltrar" class="btn-primary">Filtrar</button>
+                <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>📄 Historial de Viajes</h2>
+            <div style="overflow-x:auto;"> 
+                <table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table>
+            </div>
+        </div>
         <div class="card">
             <h2>📊 Resúmenes Simples</h2>
             <div class="summary-grid">
@@ -188,6 +197,7 @@
     const tabContents = document.querySelectorAll('.tab-content');
     const transporteForm = document.getElementById('transporteForm');
     const registrosBody = document.getElementById('registrosBody');
+    const registrosRecientesBody = document.getElementById('registrosRecientesBody');
     const selectNombres = document.getElementById('selectNombres');
     const selectPlaca = document.getElementById('selectPlaca');
     const volumenInput = document.getElementById('volumen');
@@ -234,14 +244,10 @@
     // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES ---
     const administrarListaSimple = async (collectionName, form, inputId, listaUl, selectEl, nombreSingular) => {
         const render = async () => {
-            // CORRECCIÓN: Se elimina el orderBy que causa error sin un índice.
             const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
-            
             const items = [];
             snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-            
-            // Se ordena la lista en el cliente (en el navegador)
             items.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
             listaUl.innerHTML = '';
@@ -284,19 +290,16 @@
     let choferesVehiculosCache = [];
     const administrarChoferesVehiculos = async () => {
         const render = async () => {
-            // CORRECCIÓN: Se elimina el orderBy que causa error sin un índice.
             const q = query(collection(db, "choferesVehiculos"));
             const snapshot = await getDocs(q);
             
             const items = [];
             snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-
-            // Se ordena la lista en el cliente (en el navegador)
             items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
 
             choferesVehiculosLista.innerHTML = '';
             const nombresUnicos = new Set();
-            choferesVehiculosCache = items; // Usamos la lista ordenada
+            choferesVehiculosCache = items;
 
             items.forEach(chofer => {
                 nombresUnicos.add(chofer.nombre);
@@ -372,6 +375,7 @@
     
     const renderizarRegistros = (registros) => {
         registrosBody.innerHTML = '';
+        registrosRecientesBody.innerHTML = '';
         registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
 
         registros.forEach((registro, index) => {
@@ -380,12 +384,20 @@
             const numViajes = parseInt(registro.numViajes) || 0;
             const volumenTotal = (volumen * numViajes).toFixed(2);
             
+            // Renderizar en la tabla principal de historial
             fila.innerHTML = `
                 <td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td>
                 <td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td>
                 <td>${registro.volumen}</td><td>${registro.numViajes}</td><td><b>${volumenTotal}</b></td>
                 <td><button class="action-btn edit-btn" data-id="${registro.id}">Modificar</button><button class="action-btn delete-btn" data-id="${registro.id}">Borrar</button></td>`;
             registrosBody.appendChild(fila);
+
+            // Renderizar en la tabla de historial reciente (solo los primeros 5)
+            if (index < 5) {
+                const filaReciente = document.createElement('tr');
+                filaReciente.innerHTML = `<td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.material}</td><td>${registro.proyecto}</td><td><b>${volumenTotal}</b></td>`;
+                registrosRecientesBody.appendChild(filaReciente);
+            }
         });
     };
     
