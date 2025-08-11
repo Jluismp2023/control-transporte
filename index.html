@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v24.0</title>
+    <title>Transporte de Materiales v25.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -38,9 +38,9 @@
         table { width: 100%; margin-top: 20px; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
-        .grid-container-2, .grid-container-4 { display: grid; gap: 30px; }
+        .grid-container-2, .grid-container-5 { display: grid; gap: 30px; }
         .grid-container-2 { grid-template-columns: 1fr 2fr; }
-        .grid-container-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-container-5 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
@@ -111,7 +111,7 @@
     </div>
 
     <div id="tab-admin" class="tab-content">
-        <div class="grid-container-4">
+        <div class="grid-container-5">
             <div class="card">
                 <h2>👤 Nombres de Choferes</h2>
                 <form id="nombreChoferForm"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form>
@@ -212,7 +212,6 @@
     const fechaFinInput = document.getElementById('fechaFin');
     const btnFiltrar = document.getElementById('btnFiltrar');
     const btnMostrarTodo = document.getElementById('btnMostrarTodo');
-    // Nuevas referencias para Admin de Choferes
     const nombreChoferForm = document.getElementById('nombreChoferForm');
     const nombresChoferesLista = document.getElementById('nombresChoferesLista');
     const choferVehiculoForm = document.getElementById('choferVehiculoForm');
@@ -241,10 +240,8 @@
             listaUl.innerHTML = '';
             if(selectEl) selectEl.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
             
-            const items = [];
             snapshot.forEach(doc => {
-                const item = {id: doc.id, ...doc.data()};
-                items.push(item);
+                const item = doc.data();
                 const li = document.createElement('li');
                 li.textContent = item.nombre;
                 const deleteBtn = document.createElement('button');
@@ -255,7 +252,6 @@
                 listaUl.appendChild(li);
                 if (selectEl) selectEl.add(new Option(item.nombre, item.nombre));
             });
-            return items; // Devuelve los items para usarlos en otros selectores si es necesario
         };
         form.addEventListener('submit', async e => {
             e.preventDefault();
@@ -275,7 +271,7 @@
                 }
             }
         });
-        return await render();
+        await render();
     };
     
     // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS ---
@@ -502,12 +498,12 @@
 
     // --- Carga inicial de datos ---
     const inicializarApp = async () => {
-        administrarListaSimple('nombresDeChoferes', [], nombreChoferForm, 'nuevoNombreChofer', nombresChoferesLista, selectNombreAdmin, 'Nombre de Chofer');
-        administrarListaSimple('materiales', [], materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
-        administrarListaSimple('canteras', [], canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
-        administrarListaSimple('proyectos', [], proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
-        administrarChoferesVehiculos();
-        cargarRegistros();
+        await administrarListaSimple('nombresDeChoferes', [], nombreChoferForm, 'nuevoNombreChofer', nombresChoferesLista, selectNombreAdmin, 'Nombre de Chofer');
+        await administrarListaSimple('materiales', [], materialForm, 'nuevoMaterial', materialesLista, selectMaterial, 'Material');
+        await administrarListaSimple('canteras', [], canteraForm, 'nuevaCantera', canterasLista, selectCantera, 'Cantera');
+        await administrarListaSimple('proyectos', [], proyectoForm, 'nuevoProyecto', proyectosLista, selectProyecto, 'Proyecto');
+        await administrarChoferesVehiculos();
+        await cargarRegistros();
     };
 
     inicializarApp();
