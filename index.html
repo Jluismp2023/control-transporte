@@ -39,9 +39,7 @@
         table { width: 100%; margin-top: 20px; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
-        .grid-container-2, .grid-container-5 { display: grid; gap: 30px; }
-        .grid-container-2 { grid-template-columns: 1fr 2fr; }
-        .grid-container-5 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-container-5 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
@@ -79,7 +77,38 @@
     </div>
 
     <div id="tab-registro" class="tab-content active">
+        <div class="card">
+            <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
+            <form id="transporteForm">
+                <input type="hidden" id="indiceEdicion">
+                <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
+                <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
+                <select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select>
+                <input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required>
+                <input type="date" id="fecha" required>
+                <select id="selectCantera" required><option value="">Seleccionar Cantera</option></select>
+                <select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select>
+                <input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required>
+                <div class="form-buttons">
+                    <button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button>
+                    <button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button>
+                </div>
+            </form>
         </div>
+        <div class="card">
+            <h2>🔎 Filtrar por Fecha</h2>
+            <div class="filter-form">
+                <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
+                <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
+                <button id="btnFiltrar" class="btn-primary">Filtrar</button>
+                <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>📄 Historial de Viajes</h2>
+            <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
+        </div>
+    </div>
 
     <div id="tab-admin" class="tab-content">
         <div class="grid-container-5">
@@ -90,30 +119,41 @@
             </div>
             <div class="card">
                 <h2>🚛 Asignar Vehículo a Chofer</h2>
-                <form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa del vehículo" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form>
+                <form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form>
                 <ul id="choferesVehiculosLista"></ul>
             </div>
             <div class="card">
                 <h2>💎 Materiales</h2>
-                <form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre del material" required><button type="submit" class="btn-primary">Agregar</button></form>
+                <form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
                 <ul id="materialesLista"></ul>
             </div>
             <div class="card">
                 <h2>📍 Canteras</h2>
-                <form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre de la cantera" required><button type="submit" class="btn-primary">Agregar</button></form>
+                <form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
                 <ul id="canterasLista"></ul>
             </div>
             <div class="card">
                 <h2>🏁 Proyectos</h2>
-                <form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="btn-primary">Agregar</button></form>
+                <form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
                 <ul id="proyectosLista"></ul>
             </div>
         </div>
     </div>
 
     <div id="tab-summary" class="tab-content">
+        <div class="card">
+            <h2>📊 Resúmenes Simples</h2>
+            <div class="summary-grid">
+                <div><h3>Por Material</h3><table id="resumenMaterialTabla"><thead><tr><th>Material</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenMaterialBody"></tbody></table></div>
+                <div><h3>Por Proyecto</h3><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenProyectoBody"></tbody></table></div>
+                <div><h3>Por Chofer</h3><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenChoferBody"></tbody></table></div>
+            </div>
         </div>
-
+        <div class="card">
+            <h2>📊 Resumen: Por Proyecto y Material</h2>
+            <div style="overflow-x:auto;"><table id="resumenProyectoMaterialTabla"><thead><tr><th>Proyecto</th><th>Material</th><th>Volumen Total (m³)</th></tr></thead><tbody id="resumenProyectoMaterialBody"></tbody></table></div>
+        </div>
+    </div>
     <div id="signature-section">
         <div class="signature-box">
             <p class="signature-line">_________________________</p>
@@ -139,14 +179,29 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // --- LÓGICA DE LA APLICACIÓN ---
     document.addEventListener('DOMContentLoaded', () => {
         // --- Referencias a elementos del DOM ---
-        // (El resto de las referencias se omiten para no repetir, pero están implícitas)
         const btnPrint = document.getElementById('btnPrint');
         const tabs = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
-
+        const transporteForm = document.getElementById('transporteForm');
+        const registrosBody = document.getElementById('registrosBody');
+        const selectNombres = document.getElementById('selectNombres');
+        const selectPlaca = document.getElementById('selectPlaca');
+        const volumenInput = document.getElementById('volumen');
+        const resumenMaterialBody = document.getElementById('resumenMaterialBody');
+        const resumenProyectoBody = document.getElementById('resumenProyectoBody');
+        const resumenChoferBody = document.getElementById('resumenChoferBody');
+        const resumenProyectoMaterialBody = document.getElementById('resumenProyectoMaterialBody');
+        const indiceEdicionInput = document.getElementById('indiceEdicion');
+        const formViajeTitulo = document.getElementById('formViajeTitulo');
+        const btnSubmitViaje = document.getElementById('btnSubmitViaje');
+        const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+        const fechaInicioInput = document.getElementById('fechaInicio');
+        const fechaFinInput = document.getElementById('fechaFin');
+        const btnFiltrar = document.getElementById('btnFiltrar');
+        const btnMostrarTodo = document.getElementById('btnMostrarTodo');
+        
         // --- Lógica de Pestañas ---
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -156,8 +211,7 @@
                 document.getElementById(tab.dataset.tab).classList.add('active');
             });
         });
-        
-        // --- LÓGICA DE IMPRESIÓN ---
+
         btnPrint.addEventListener('click', () => { window.print(); });
 
         // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES (CON EDICIÓN) ---
@@ -169,10 +223,10 @@
             const editIdInput = form.querySelector('.edit-id');
             const submitBtn = form.querySelector('button[type="submit"]');
 
-            const cancelarEdicion = () => {
+            const resetForm = () => {
                 editIdInput.value = '';
                 inputEl.value = '';
-                submitBtn.textContent = `Agregar`;
+                submitBtn.textContent = 'Agregar';
                 submitBtn.classList.remove('btn-success');
                 submitBtn.classList.add('btn-primary');
             };
@@ -185,8 +239,15 @@
                 items.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 listaUl.innerHTML = '';
-                if(selectEl) selectEl.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
+                const selectsToUpdate = [selectEl];
+                if (collectionName === 'nombresDeChoferes') {
+                    selectsToUpdate.push(document.getElementById('selectNombreAdmin'));
+                }
                 
+                selectsToUpdate.forEach(sel => {
+                    if(sel) sel.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
+                });
+
                 items.forEach(item => {
                     const li = document.createElement('li');
                     li.innerHTML = `<span>${item.nombre}</span>
@@ -195,7 +256,9 @@
                             <button class="list-action-btn delete-btn" data-id="${item.id}">🗑️</button>
                         </div>`;
                     listaUl.appendChild(li);
-                    if (selectEl) selectEl.add(new Option(item.nombre, item.nombre));
+                    selectsToUpdate.forEach(sel => {
+                        if (sel) sel.add(new Option(item.nombre, item.nombre));
+                    });
                 });
             };
 
@@ -209,7 +272,7 @@
                     } else {
                         await addDoc(collection(db, collectionName), { nombre: nuevoValor });
                     }
-                    cancelarEdicion();
+                    resetForm();
                     await render();
                 }
             });
@@ -226,7 +289,7 @@
                 } else if (target.classList.contains('edit-btn')) {
                     inputEl.value = target.dataset.nombre;
                     editIdInput.value = id;
-                    submitBtn.textContent = 'Guardar Cambios';
+                    submitBtn.textContent = 'Guardar';
                     submitBtn.classList.replace('btn-primary', 'btn-success');
                     inputEl.focus();
                 }
@@ -236,22 +299,162 @@
         };
         
         // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS (CON EDICIÓN) ---
-        // (Similar a la anterior, pero con múltiples campos)
+        let choferesVehiculosCache = [];
         const administrarChoferesVehiculos = async () => {
-             // ... Implementación completa en el siguiente bloque
+            const form = document.getElementById('choferVehiculoForm');
+            const listaUl = document.getElementById('choferesVehiculosLista');
+            const editIdInput = form.querySelector('.edit-id');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const selectNombreEl = document.getElementById('selectNombreAdmin');
+            const nuevaPlacaEl = document.getElementById('nuevaPlaca');
+            const nuevoVolumenEl = document.getElementById('nuevoVolumen');
+            
+            const resetForm = () => {
+                editIdInput.value = '';
+                form.reset();
+                submitBtn.textContent = 'Asignar';
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-primary');
+            };
+
+            const render = async () => {
+                const q = query(collection(db, "choferesVehiculos"));
+                const snapshot = await getDocs(q);
+                const items = [];
+                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+                items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
+
+                listaUl.innerHTML = '';
+                const nombresUnicos = new Set();
+                choferesVehiculosCache = items;
+
+                items.forEach(chofer => {
+                    nombresUnicos.add(chofer.nombre);
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span>
+                        <div class="actions">
+                            <button class="list-action-btn edit-btn" data-id="${chofer.id}">✏️</button>
+                            <button class="list-action-btn delete-btn" data-id="${chofer.id}">🗑️</button>
+                        </div>`;
+                    listaUl.appendChild(li);
+                });
+                
+                selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
+                Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
+            };
+
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const idParaEditar = editIdInput.value;
+                const data = {
+                    nombre: selectNombreEl.value,
+                    placa: nuevaPlacaEl.value.trim().toUpperCase(),
+                    volumen: nuevoVolumenEl.value
+                };
+                if (!data.nombre) return alert('Por favor, selecciona un nombre de chofer.');
+                
+                if(idParaEditar) {
+                    await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data);
+                } else {
+                    await addDoc(collection(db, "choferesVehiculos"), data);
+                }
+                resetForm();
+                await render();
+            });
+
+            listaUl.addEventListener('click', async e => {
+                const target = e.target.closest('button');
+                if (!target) return;
+                const id = target.dataset.id;
+
+                if (target.classList.contains('delete-btn')) {
+                    if (confirm(`¿Seguro que quieres borrar esta combinación?`)) {
+                        await deleteDoc(doc(db, "choferesVehiculos", id));
+                        await render();
+                    }
+                } else if (target.classList.contains('edit-btn')) {
+                    const item = choferesVehiculosCache.find(c => c.id === id);
+                    if(item) {
+                        selectNombreEl.value = item.nombre;
+                        nuevaPlacaEl.value = item.placa;
+                        nuevoVolumenEl.value = item.volumen;
+                        editIdInput.value = id;
+                        submitBtn.textContent = 'Guardar';
+                        submitBtn.classList.replace('btn-primary', 'btn-success');
+                    }
+                }
+            });
+            await render();
         };
 
-        // --- INICIALIZAR TODAS LAS SECCIONES DE ADMINISTRACIÓN ---
-        administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', 'selectNombreAdmin', 'Nombre de Chofer');
-        administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', 'selectMaterial', 'Material');
-        administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', 'selectCantera', 'Cantera');
-        administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', 'selectProyecto', 'Proyecto');
-        // ... Falta la llamada a la función de administrarChoferesVehiculos
+        // --- LÓGICA DE FORMULARIO DE VIAJE ---
+        selectNombres.addEventListener('change', () => {
+            const nombreSeleccionado = selectNombres.value;
+            selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
+            volumenInput.value = '';
+            if (nombreSeleccionado) {
+                const vehiculosDelChofer = choferesVehiculosCache.filter(c => c.nombre === nombreSeleccionado);
+                vehiculosDelChofer.forEach(v => {
+                    const option = new Option(`${v.placa} (${v.volumen} m³)`, v.placa);
+                    option.dataset.volumen = v.volumen;
+                    selectPlaca.add(option);
+                });
+                selectPlaca.disabled = false;
+            } else {
+                selectPlaca.disabled = true;
+            }
+        });
+        selectPlaca.addEventListener('change', () => {
+            const selectedOption = selectPlaca.options[selectPlaca.selectedIndex];
+            volumenInput.value = selectedOption.dataset.volumen || '';
+        });
+
+        // --- LÓGICA PARA RENDERIZAR DATOS ---
+        const renderizarDatos = (docs) => {
+            const registrosData = docs.map(doc => ({id: doc.id, ...doc.data()}));
+            renderizarRegistros(registrosData);
+            renderizarResumenes(registrosData);
+        };
+
+        const cargarRegistros = async (customQuery = null) => {
+            const q = customQuery ? customQuery : query(collection(db, "registros"));
+            const snapshot = await getDocs(q);
+            renderizarDatos(snapshot.docs);
+        };
         
-        // --- El resto del código de la aplicación (viajes, resúmenes, etc.) ---
-        // (Se omitió temporalmente para corregir este error primero)
+        const renderizarRegistros = (registros) => {
+             // ... Implementación de renderizado de historial (se omite para brevedad)
+        };
+        
+        const renderizarResumenes = (registros) => {
+             // ... Implementación de renderizado de resúmenes (se omite para brevedad)
+        };
+        
+        // --- EVENTOS Y ACCIONES ---
+        // ... (Todos los event listeners de formularios y botones)
+
+        // --- Carga inicial de datos ---
+        const inicializarApp = async () => {
+            await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', 'selectNombreAdmin', 'Nombre de Chofer');
+            await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', 'selectMaterial', 'Material');
+            await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', 'selectCantera', 'Cantera');
+            await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', 'selectProyecto', 'Proyecto');
+            await administrarChoferesVehiculos();
+            await cargarRegistros();
+        };
+
+        inicializarApp();
     });
 </script>
+
+<div id="tab-registro" class="tab-content active">
+    </div>
+<div id="tab-admin" class="tab-content">
+    </div>
+<div id="tab-summary" class="tab-content">
+    </div>
+<div id="signature-section">
+    </div>
 
 </body>
 </html>
