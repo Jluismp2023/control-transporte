@@ -1,13 +1,13 @@
---<!DOCTYPE html>
+-<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v28.0</title>
+    <title>Transporte de Materiales v29.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
         #logo { height: 50px; margin-right: 15px; }
         h1 { color: #0056b3; margin: 0; }
         h2, h3 { color: #0056b3; text-align: center; }
@@ -40,20 +40,54 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
         .grid-container-5 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         #btnCancelarEdicion { display: none; }
+        #signature-section { display: none; }
+        .print-header { display: none; }
+
         @media (max-width: 992px) { .grid-container-2 { grid-template-columns: 1fr; } }
         
+        /* --- ESTILOS PROFESIONALES PARA IMPRESIÓN --- */
         @media print {
-            body { background-color: white; font-size: 10pt; }
-            #logo { display: block; height: 40px !important; }
-            .main-container { margin: 0; padding: 0; box-shadow: none; }
-            .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            @page {
+                size: A4;
+                margin: 2cm;
+                @bottom-center {
+                    content: "Página " counter(page);
+                    font-size: 9pt;
+                    color: #888;
+                }
+            }
+            body { background-color: white; font-size: 9pt; font-family: 'Times New Roman', Times, serif; }
+            .main-container { margin: 0; padding: 0; }
+            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 25px; page-break-inside: avoid; }
+            .header-container { flex-direction: column; align-items: flex-start; }
+            .header-container h1 { font-size: 18pt; }
+            .print-header { display: block; width: 100%; text-align: right; font-size: 9pt; color: #555; margin-top: -20px; }
+            #logo { display: block; height: 45px !important; margin-bottom: 15px; }
+            h2 { margin-top: 25px; margin-bottom: 10px; font-size: 14pt; border: none; }
+            h3 { font-size: 11pt; text-align: left; }
+            /* Ocultar elementos no deseados */
             .header-container #btnPrint, .tabs, .tab-content:not(.active), form, .action-btn, .list-action-btn, .card:has(.filter-form) { display: none; }
-            h1, h2 { margin-top: 20px; }
             .tab-content.active { display: block !important; }
-            #signature-section { display: flex; justify-content: center; margin-top: 100px; page-break-before: always; }
+            table { border: 1px solid #333; }
+            th, td {
+                border: 1px solid #333; /* <-- CUADRÍCULA COMPLETA */
+                padding: 5px;
+            }
+            th {
+                background-color: #E0E0E0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            #signature-section {
+                display: flex;
+                justify-content: center;
+                margin-top: 100px;
+                page-break-before: always;
+            }
             .signature-box { text-align: center; width: 300px; }
             .signature-box p { margin: 2px 0; }
             .signature-line { margin-bottom: 8px; font-weight: bold; }
@@ -66,88 +100,21 @@
     <div class="header-container">
         <img id="logo" src="logo.png" alt="Logo de la Empresa">
         <h1>TRANSPORTE DE MATERIALES</h1>
+        <div class="print-header">Reporte Generado: <span id="print-date"></span></div>
         <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
     </div>
 
     <div class="tabs">
-        <button class="tab-button active" data-tab="tab-registro">Registro de Viajes</button>
+        <button class="tab-button active" data-tab="tab-registro">Registro y Viajes</button>
         <button class="tab-button" data-tab="tab-admin">Administración</button>
-        <button class="tab-button" data-tab="tab-summary">Reporte de Viajes</button>
+        <button class="tab-button" data-tab="tab-summary">Resúmenes</button>
     </div>
-
     <div id="tab-registro" class="tab-content active">
-        <div class="card">
-            <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
-            <form id="transporteForm">
-                <input type="hidden" id="indiceEdicion">
-                <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
-                <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
-                <select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select>
-                <input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required>
-                <input type="date" id="fecha" required>
-                <select id="selectCantera" required><option value="">Seleccionar Cantera</option></select>
-                <select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select>
-                <input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required>
-                <div class="form-buttons">
-                    <button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button>
-                    <button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button>
-                </div>
-            </form>
         </div>
-        <div class="card">
-            <h2>📄 Historial Reciente (Últimos 5 Viajes)</h2>
-            <div style="overflow-x:auto;">
-                <table id="registrosRecientesTabla"><thead><tr><th>Fecha</th><th>Chofer</th><th>Material</th><th>Proyecto</th><th>Vol. Total</th></tr></thead><tbody id="registrosRecientesBody"></tbody></table>
-            </div>
-        </div>
-    </div>
-
     <div id="tab-admin" class="tab-content">
-        <div class="grid-container-5">
-            <div class="card">
-                <h2>👤 Nombres de Choferes</h2>
-                <form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form>
-                <ul id="nombresChoferesLista"></ul>
-            </div>
-            <div class="card">
-                <h2>🚛 Asignar Vehículo a Chofer</h2>
-                <form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form>
-                <ul id="choferesVehiculosLista"></ul>
-            </div>
-            <div class="card">
-                <h2>💎 Materiales</h2>
-                <form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
-                <ul id="materialesLista"></ul>
-            </div>
-            <div class="card">
-                <h2>📍 Canteras</h2>
-                <form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
-                <ul id="canterasLista"></ul>
-            </div>
-            <div class="card">
-                <h2>🏁 Proyectos</h2>
-                <form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form>
-                <ul id="proyectosLista"></ul>
-            </div>
         </div>
-    </div>
-
     <div id="tab-summary" class="tab-content">
-        <div class="card">
-            <h2>🔎 Filtrar por Fecha</h2>
-            <div class="filter-form">
-                <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
-                <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
-                <button id="btnFiltrar" class="btn-primary">Filtrar</button>
-                <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
-            </div>
         </div>
-        <div class="card">
-            <h2>📄 Historial de Viajes</h2>
-            <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
-        </div>
-    </div>
-    
     <div id="signature-section">
         <div class="signature-box">
             <p class="signature-line">_________________________</p>
@@ -173,13 +140,62 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    const cargarContenidoHTML = () => {
+        // Esta función carga el HTML dinámicamente
+        document.getElementById('tab-registro').innerHTML = `
+            <div class="card">
+                <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
+                <form id="transporteForm">
+                    <input type="hidden" id="indiceEdicion">
+                    <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
+                    <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
+                    <select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select>
+                    <input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required>
+                    <input type="date" id="fecha" required>
+                    <select id="selectCantera" required><option value="">Seleccionar Cantera</option></select>
+                    <select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select>
+                    <input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required>
+                    <div class="form-buttons">
+                        <button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button>
+                        <button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button>
+                    </div>
+                </form>
+            </div>`;
+
+        document.getElementById('tab-admin').innerHTML = `
+            <div class="grid-container-5">
+                <div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>
+                <div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>
+                <div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div>
+                <div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div>
+                <div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div>
+            </div>`;
+
+        document.getElementById('tab-summary').innerHTML = `
+            <div class="card">
+                <h2>🔎 Filtrar por Fecha</h2>
+                <div class="filter-form">
+                    <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
+                    <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
+                    <button id="btnFiltrar" class="btn-primary">Filtrar</button>
+                    <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📄 Historial de Viajes</h2>
+                <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th>Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
+            </div>`;
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
+        cargarContenidoHTML();
+
+        // --- Referencias a elementos del DOM ---
         const btnPrint = document.getElementById('btnPrint');
         const tabs = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
         const transporteForm = document.getElementById('transporteForm');
         const registrosBody = document.getElementById('registrosBody');
-        const registrosRecientesBody = document.getElementById('registrosRecientesBody');
         const selectNombres = document.getElementById('selectNombres');
         const selectPlaca = document.getElementById('selectPlaca');
         const volumenInput = document.getElementById('volumen');
@@ -192,6 +208,7 @@
         const btnFiltrar = document.getElementById('btnFiltrar');
         const btnMostrarTodo = document.getElementById('btnMostrarTodo');
         
+        // --- Lógica de Pestañas ---
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
@@ -201,8 +218,15 @@
             });
         });
 
-        btnPrint.addEventListener('click', () => { window.print(); });
+        // --- LÓGICA DE IMPRESIÓN ACTUALIZADA ---
+        btnPrint.addEventListener('click', () => {
+            const now = new Date();
+            const formattedDate = now.toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' });
+            document.getElementById('print-date').textContent = formattedDate;
+            window.print();
+        });
 
+        // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES (CON EDICIÓN) ---
         const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
             const form = document.getElementById(formId);
             const inputEl = document.getElementById(inputId);
@@ -214,7 +238,6 @@
                 editIdInput.value = '';
                 inputEl.value = '';
                 submitBtn.textContent = 'Agregar';
-                if (form.id === 'choferVehiculoForm') submitBtn.textContent = 'Asignar';
                 submitBtn.classList.remove('btn-success');
                 submitBtn.classList.add('btn-primary');
             };
@@ -277,6 +300,7 @@
             await render();
         };
         
+        // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS (CON EDICIÓN) ---
         let choferesVehiculosCache = [];
         const administrarChoferesVehiculos = async () => {
             const form = document.getElementById('choferVehiculoForm');
@@ -352,6 +376,7 @@
             await render();
         };
 
+        // --- LÓGICA DE FORMULARIO DE VIAJE ---
         selectNombres.addEventListener('change', () => {
             const nombreSeleccionado = selectNombres.value;
             selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
@@ -373,16 +398,20 @@
             volumenInput.value = selectedOption.dataset.volumen || '';
         });
 
+        // --- LÓGICA PARA RENDERIZAR DATOS ---
+        const renderizarDatos = (docs) => {
+            const registrosData = docs.map(doc => ({id: doc.id, ...doc.data()}));
+            renderizarRegistros(registrosData);
+        };
+
         const cargarRegistros = async (customQuery = null) => {
             const q = customQuery ? customQuery : query(collection(db, "registros"));
             const snapshot = await getDocs(q);
-            const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            renderizarRegistros(registrosData);
+            renderizarDatos(snapshot.docs);
         };
         
         const renderizarRegistros = (registros) => {
             registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
-
             registrosBody.innerHTML = '';
             registros.forEach((registro, index) => {
                 const fila = document.createElement('tr');
@@ -393,18 +422,9 @@
                 fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${registro.volumen}</td><td>${registro.numViajes}</td><td><b>${volumenTotal}</b></td><td><button class="action-btn edit-btn" data-id="${registro.id}">Modificar</button><button class="action-btn delete-btn" data-id="${registro.id}">Borrar</button></td>`;
                 registrosBody.appendChild(fila);
             });
-            
-            registrosRecientesBody.innerHTML = '';
-            registros.slice(0, 5).forEach(registro => {
-                const filaReciente = document.createElement('tr');
-                const volumen = parseFloat(registro.volumen) || 0;
-                const numViajes = parseInt(registro.numViajes) || 0;
-                const volumenTotal = (volumen * numViajes).toFixed(2);
-                filaReciente.innerHTML = `<td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.material}</td><td>${registro.proyecto}</td><td><b>${volumenTotal}</b></td>`;
-                registrosRecientesBody.appendChild(filaReciente);
-            });
         };
         
+        // --- EVENTOS Y ACCIONES ---
         btnFiltrar.addEventListener('click', () => {
             const fechaInicio = fechaInicioInput.value;
             const fechaFin = fechaFinInput.value;
