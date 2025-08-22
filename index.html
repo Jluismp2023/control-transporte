@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v31.0</title>
+    <title>Transporte de Materiales v32.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -24,15 +24,10 @@
         li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
         li .actions { display: flex; gap: 5px; }
         input, select { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; background-color: white; }
-        input:read-only { background-color: #e9ecef; }
-        select:disabled { background-color: #e9ecef; }
         button { padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s; }
         .btn-primary { background-color: #0056b3; color: white; }
-        .btn-primary:hover { background-color: #004494; }
         .btn-success { background-color: #28a745; color: white; }
-        .btn-success:hover { background-color: #218838; }
         .btn-secondary { background-color: #6c757d; color: white; }
-        .btn-secondary:hover { background-color: #5a6268; }
         .action-btn, .list-action-btn { font-size: 12px; padding: 5px 10px; }
         .delete-btn { background-color: #dc3545; color: white; }
         .edit-btn { background-color: #ffc107; color: black; }
@@ -46,51 +41,55 @@
         #btnCancelarEdicion { display: none; }
         .print-header { display: none; }
         #signature-section { display: none; }
-        
-        @media (max-width: 992px) { .grid-container-2 { grid-template-columns: 1fr; } }
-        
+        .print-only { display: none; } /* Ocultar por defecto */
+
         /* --- ESTILOS DE IMPRESIÓN PROFESIONAL (ACTUALIZADOS) --- */
         @media print {
             @page {
                 size: A4 landscape; /* Hoja en horizontal para más espacio */
                 margin: 1.5cm;
-                @bottom-center { content: "Página " counter(page); font-size: 9pt; color: #666; }
+                @bottom-center {
+                    content: "Página " counter(page);
+                    font-size: 9pt; color: #666;
+                }
             }
             body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; }
             .main-container { margin: 0; padding: 0; }
             .card { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; page-break-inside: avoid; }
-            .header-container { display: none; } /* Ocultamos el encabezado web */
-            
-            /* Título principal del reporte */
-            #report-title {
+            /* Ocultar elementos no deseados de la interfaz */
+            .header-container, .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form), .action-btn-header, .action-cell { display: none; }
+            .tab-content.active { display: block !important; }
+
+            /* Estilo para el encabezado del reporte */
+            .print-only {
                 display: block;
                 text-align: center;
-                font-size: 16pt;
+                font-size: 18pt;
                 font-weight: bold;
                 color: #003366;
                 padding-bottom: 10px;
-                margin-bottom: 20px;
-                border-bottom: 2px solid #d6eaf8;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #aed6f1;
             }
             
-            h2 { margin: 0; padding: 0; border: none; text-align: left; font-size: 14pt; }
-            /* Ocultar elementos no deseados */
-            .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form), .action-btn-header, .action-cell { display: none; }
-            .tab-content.active { display: block !important; }
+            h2 { display: none; } /* Ocultar títulos de las tarjetas */
+
+            /* Estilo para las tablas con cuadrícula */
             table { border-collapse: collapse; width: 100%; }
             th, td {
-                border: 1px solid #ccc !important; /* Cuadrícula gris claro */
+                border: 1px solid #333 !important; /* Cuadrícula negra sólida */
                 padding: 6px;
                 text-align: left;
                 vertical-align: middle;
             }
             th {
-                background-color: #F8F9FA !important; /* Fondo gris muy claro */
+                background-color: #EAEAEA !important; /* Fondo gris claro */
                 font-weight: bold;
                 text-align: center;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
+
             #signature-section { display: flex; justify-content: center; margin-top: 80px; page-break-before: always; }
             .signature-box { text-align: center; width: 300px; }
             .signature-box p { margin: 2px 0; }
@@ -104,7 +103,6 @@
     <div class="header-container">
         <img id="logo" src="logo.png" alt="Logo de la Empresa">
         <h1>TRANSPORTE DE MATERIALES</h1>
-        <div class="print-header">Reporte Generado: <span id="print-date"></span></div>
     </div>
 
     <div class="tabs">
@@ -120,7 +118,7 @@
         </div>
 
     <div id="tab-summary" class="tab-content">
-        <div id="report-title" style="display: none;">TRANSPORTE DE MATERIALES PETREOS</div>
+        <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
         </div>
 
     <div id="signature-section">
@@ -158,8 +156,7 @@
         const tabContents = document.querySelectorAll('.tab-content');
         const transporteForm = document.getElementById('transporteForm');
         const registrosBody = document.getElementById('registrosBody');
-        const selectNombres = document.getElementById('selectNombres');
-        // El resto de las referencias...
+        // ... (el resto de las referencias)
 
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -170,13 +167,7 @@
             });
         });
 
-        btnPrint.addEventListener('click', () => {
-            const now = new Date();
-            const formattedDate = now.toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' });
-            const printDateEl = document.getElementById('print-date');
-            if (printDateEl) printDateEl.textContent = formattedDate;
-            window.print();
-        });
+        btnPrint.addEventListener('click', () => { window.print(); });
 
         const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
             const form = document.getElementById(formId);
@@ -186,18 +177,15 @@
             const submitBtn = form.querySelector('button[type="submit"]');
 
             const resetForm = () => { editIdInput.value = ''; inputEl.value = ''; submitBtn.textContent = 'Agregar'; submitBtn.classList.remove('btn-success'); };
-
             const render = async () => {
                 const q = query(collection(db, collectionName));
                 const snapshot = await getDocs(q);
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
                 items.sort((a, b) => a.nombre.localeCompare(b.nombre));
-
                 listaUl.innerHTML = '';
                 const selectsToUpdate = selectIds.map(id => document.getElementById(id)).filter(el => el);
                 selectsToUpdate.forEach(sel => { sel.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`; });
-
                 items.forEach(item => {
                     const li = document.createElement('li');
                     li.innerHTML = `<span>${item.nombre}</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button><button class="list-action-btn delete-btn" data-id="${item.id}">🗑️</button></div>`;
@@ -205,7 +193,6 @@
                     selectsToUpdate.forEach(sel => sel.add(new Option(item.nombre, item.nombre)));
                 });
             };
-
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const nuevoValor = inputEl.value.trim();
@@ -216,7 +203,6 @@
                     resetForm(); await render();
                 }
             });
-
             listaUl.addEventListener('click', async e => {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -254,34 +240,28 @@
                 const items = [];
                 snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
                 items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
-
                 listaUl.innerHTML = '';
                 const nombresUnicos = new Set();
                 choferesVehiculosCache = items;
-
                 items.forEach(chofer => {
                     nombresUnicos.add(chofer.nombre);
                     const li = document.createElement('li');
                     li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${chofer.id}">✏️</button><button class="list-action-btn delete-btn" data-id="${chofer.id}">🗑️</button></div>`;
                     listaUl.appendChild(li);
                 });
-                
+                const selectNombres = document.getElementById('selectNombres');
                 selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
                 Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
             };
-
             form.addEventListener('submit', async e => {
                 e.preventDefault();
                 const idParaEditar = editIdInput.value;
                 const data = { nombre: selectNombreEl.value, placa: nuevaPlacaEl.value.trim().toUpperCase(), volumen: nuevoVolumenEl.value };
                 if (!data.nombre) return alert('Por favor, selecciona un nombre de chofer.');
-                
                 if(idParaEditar) { await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data); } 
                 else { await addDoc(collection(db, "choferesVehiculos"), data); }
-                resetForm();
-                await render();
+                resetForm(); await render();
             });
-
             listaUl.addEventListener('click', async e => {
                 const target = e.target.closest('button');
                 if (!target) return;
@@ -305,6 +285,10 @@
             });
             await render();
         };
+
+        const selectNombres = document.getElementById('selectNombres');
+        const selectPlaca = document.getElementById('selectPlaca');
+        const volumenInput = document.getElementById('volumen');
 
         selectNombres.addEventListener('change', () => {
             const nombreSeleccionado = selectNombres.value;
