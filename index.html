@@ -7,7 +7,7 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .header-container { display: flex; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
         #logo { height: 50px; margin-right: 15px; }
         h1 { color: #0056b3; margin: 0; }
         h2, h3 { color: #0056b3; text-align: center; }
@@ -44,50 +44,17 @@
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         #btnCancelarEdicion { display: none; }
-        #signature-section { display: none; }
-        .print-header { display: none; }
-
         @media (max-width: 992px) { .grid-container-2 { grid-template-columns: 1fr; } }
         
-        /* --- ESTILOS PROFESIONALES PARA IMPRESIÓN --- */
         @media print {
-            @page {
-                size: A4;
-                margin: 2cm;
-                @bottom-center {
-                    content: "Página " counter(page);
-                    font-size: 9pt;
-                    color: #888;
-                }
-            }
-            body { background-color: white; font-size: 9pt; font-family: 'Times New Roman', Times, serif; }
-            .main-container { margin: 0; padding: 0; }
-            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 25px; page-break-inside: avoid; }
-            .header-container { flex-direction: column; align-items: flex-start; }
-            .header-container h1 { font-size: 18pt; }
-            .print-header { display: block; width: 100%; text-align: right; font-size: 9pt; color: #555; margin-top: -20px; }
-            #logo { display: block; height: 45px !important; margin-bottom: 15px; }
-            h2 { margin-top: 25px; margin-bottom: 10px; font-size: 14pt; border: none; }
-            h3 { font-size: 11pt; text-align: left; }
-            /* Ocultar elementos no deseados */
-            .header-container #btnPrint, .tabs, .tab-content:not(.active), form, .action-btn, .list-action-btn, .card:has(.filter-form) { display: none; }
+            body { background-color: white; font-size: 10pt; }
+            #logo { display: block; height: 40px !important; }
+            .main-container { margin: 0; padding: 0; box-shadow: none; }
+            .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+            .header-container, .tabs, .tab-content:not(.active), form, .action-btn, .list-action-btn, .card:has(.filter-form) { display: none; }
+            h1, h2 { margin-top: 20px; }
             .tab-content.active { display: block !important; }
-            table { border: 1px solid #333; }
-            th, td {
-                border: 1px solid #333; /* <-- CUADRÍCULA COMPLETA */
-                padding: 5px;
-            }
-            th {
-                background-color: #E0E0E0 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            #signature-section {
-                display: flex;
-                justify-content: center;
-                margin-top: 100px;
-                page-break-before: always;
-            }
+            #signature-section { display: flex; justify-content: center; margin-top: 100px; page-break-before: always; }
             .signature-box { text-align: center; width: 300px; }
             .signature-box p { margin: 2px 0; }
             .signature-line { margin-bottom: 8px; font-weight: bold; }
@@ -100,21 +67,23 @@
     <div class="header-container">
         <img id="logo" src="logo.png" alt="Logo de la Empresa">
         <h1>TRANSPORTE DE MATERIALES</h1>
-        <div class="print-header">Reporte Generado: <span id="print-date"></span></div>
-        <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
-    </div>
+        </div>
 
     <div class="tabs">
-        <button class="tab-button active" data-tab="tab-registro">Registro y Viajes</button>
+        <button class="tab-button active" data-tab="tab-registro">Registro de Viajes</button>
         <button class="tab-button" data-tab="tab-admin">Administración</button>
         <button class="tab-button" data-tab="tab-summary">Resúmenes</button>
     </div>
+
     <div id="tab-registro" class="tab-content active">
         </div>
+
     <div id="tab-admin" class="tab-content">
         </div>
+
     <div id="tab-summary" class="tab-content">
         </div>
+
     <div id="signature-section">
         <div class="signature-box">
             <p class="signature-line">_________________________</p>
@@ -141,7 +110,6 @@
     const db = getFirestore(app);
 
     const cargarContenidoHTML = () => {
-        // Esta función carga el HTML dinámicamente
         document.getElementById('tab-registro').innerHTML = `
             <div class="card">
                 <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
@@ -173,12 +141,13 @@
 
         document.getElementById('tab-summary').innerHTML = `
             <div class="card">
-                <h2>🔎 Filtrar por Fecha</h2>
+                <h2>🔎 Filtrar e Imprimir</h2>
                 <div class="filter-form">
                     <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
                     <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
                     <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                     <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
+                    <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
                 </div>
             </div>
             <div class="card">
@@ -218,13 +187,7 @@
             });
         });
 
-        // --- LÓGICA DE IMPRESIÓN ACTUALIZADA ---
-        btnPrint.addEventListener('click', () => {
-            const now = new Date();
-            const formattedDate = now.toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' });
-            document.getElementById('print-date').textContent = formattedDate;
-            window.print();
-        });
+        btnPrint.addEventListener('click', () => { window.print(); });
 
         // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES (CON EDICIÓN) ---
         const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
@@ -399,15 +362,11 @@
         });
 
         // --- LÓGICA PARA RENDERIZAR DATOS ---
-        const renderizarDatos = (docs) => {
-            const registrosData = docs.map(doc => ({id: doc.id, ...doc.data()}));
-            renderizarRegistros(registrosData);
-        };
-
         const cargarRegistros = async (customQuery = null) => {
             const q = customQuery ? customQuery : query(collection(db, "registros"));
             const snapshot = await getDocs(q);
-            renderizarDatos(snapshot.docs);
+            const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            renderizarRegistros(registrosData);
         };
         
         const renderizarRegistros = (registros) => {
