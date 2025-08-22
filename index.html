@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v30.1</title>
+    <title>Transporte de Materiales v31.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -40,25 +40,18 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
         .grid-container-5 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         #btnCancelarEdicion { display: none; }
         .print-header { display: none; }
         #signature-section { display: none; }
         
-        @media (max-width: 992px) { .grid-container-2 { grid-template-columns: 1fr; } }
-        
         @media print {
             body { background-color: white; font-size: 9pt; font-family: 'Times New Roman', Times, serif; }
             @page {
                 size: A4;
                 margin: 2cm;
-                @bottom-center {
-                    content: "Página " counter(page);
-                    font-size: 9pt;
-                    color: #666;
-                }
+                @bottom-center { content: "Página " counter(page); font-size: 9pt; color: #666; }
             }
             .main-container { margin: 0; padding: 0; }
             .card { box-shadow: none; border: none; padding: 0; margin-bottom: 25px; page-break-inside: avoid; }
@@ -96,13 +89,38 @@
     </div>
 
     <div id="tab-registro" class="tab-content active">
+        <div class="card">
+            <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
+            <form id="transporteForm"><input type="hidden" id="indiceEdicion"><select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select><select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select><select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select><input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required><input type="date" id="fecha" required><select id="selectCantera" required><option value="">Seleccionar Cantera</option></select><select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select><input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required><div class="form-buttons"><button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button><button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button></div></form>
         </div>
+    </div>
 
     <div id="tab-admin" class="tab-content">
+        <div class="grid-container-5">
+            <div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>
+            <div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>
+            <div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div>
+            <div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div>
+            <div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div>
         </div>
+    </div>
 
     <div id="tab-summary" class="tab-content">
+        <div class="card">
+            <h2>🔎 Filtrar e Imprimir</h2>
+            <div class="filter-form">
+                <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
+                <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
+                <button id="btnFiltrar" class="btn-primary">Filtrar</button>
+                <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
+                <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
+            </div>
         </div>
+        <div class="card">
+            <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
+            <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th class="action-btn-header">Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-btn-header">Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
+        </div>
+    </div>
 
     <div id="signature-section">
         <div class="signature-box">
@@ -129,62 +147,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const cargarContenidoHTML = () => {
-        document.getElementById('tab-registro').innerHTML = `
-            <div class="card">
-                <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
-                <form id="transporteForm"><input type="hidden" id="indiceEdicion"><select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select><select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select><select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select><input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required><input type="date" id="fecha" required><select id="selectCantera" required><option value="">Seleccionar Cantera</option></select><select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select><input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required><div class="form-buttons"><button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button><button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button></div></form>
-            </div>`;
-
-        document.getElementById('tab-admin').innerHTML = `
-            <div class="grid-container-5">
-                <div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>
-                <div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>
-                <div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div>
-                <div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div>
-                <div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div>
-            </div>`;
-
-        document.getElementById('tab-summary').innerHTML = `
-            <div class="card">
-                <h2>🔎 Filtrar e Imprimir</h2>
-                <div class="filter-form">
-                    <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
-                    <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
-                    <button id="btnFiltrar" class="btn-primary">Filtrar</button>
-                    <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
-                    <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
-                </div>
-            </div>
-            <div class="card">
-                <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
-                <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-btn-header">Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
-            </div>`;
-    };
-
     document.addEventListener('DOMContentLoaded', () => {
-        cargarContenidoHTML();
-
         // --- Referencias a elementos del DOM ---
-        const btnPrint = document.getElementById('btnPrint');
-        const tabs = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const transporteForm = document.getElementById('transporteForm');
-        const registrosBody = document.getElementById('registrosBody');
-        const selectNombres = document.getElementById('selectNombres');
-        // ... el resto de las referencias se obtienen aquí
-        
-        // --- Lógica de la aplicación ---
-        // Se omite por brevedad, es el mismo código funcional de la versión anterior
-        // El script completo de la versión funcional se pega aquí
-    });
-</script>
-
-<script type="module" id="full-app-logic">
-    // Este es el script completo y funcional.
-    const dbRef = getFirestore(app);
-
-    const inicializarApp = async () => {
         const btnPrint = document.getElementById('btnPrint');
         const tabs = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -202,6 +166,7 @@
         const btnFiltrar = document.getElementById('btnFiltrar');
         const btnMostrarTodo = document.getElementById('btnMostrarTodo');
         
+        // --- Lógica de Pestañas ---
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
@@ -219,6 +184,7 @@
             window.print();
         });
 
+        // --- LÓGICA GENÉRICA PARA LISTAS SIMPLES (CON EDICIÓN) ---
         const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
             const form = document.getElementById(formId);
             const inputEl = document.getElementById(inputId);
@@ -229,7 +195,7 @@
             const resetForm = () => {
                 editIdInput.value = ''; inputEl.value = '';
                 submitBtn.textContent = 'Agregar';
-                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.remove('btn-success'); submitBtn.classList.add('btn-primary');
             };
 
             const render = async () => {
@@ -277,7 +243,7 @@
                     inputEl.value = target.dataset.nombre;
                     editIdInput.value = id;
                     submitBtn.textContent = 'Guardar';
-                    submitBtn.classList.add('btn-success');
+                    submitBtn.classList.replace('btn-primary', 'btn-success');
                     inputEl.focus();
                 }
             });
@@ -285,6 +251,7 @@
             await render();
         };
         
+        // --- LÓGICA PARA ADMINISTRAR CHOFERES/VEHÍCULOS (CON EDICIÓN) ---
         let choferesVehiculosCache = [];
         const administrarChoferesVehiculos = async () => {
             const form = document.getElementById('choferVehiculoForm');
@@ -358,6 +325,7 @@
             await render();
         };
 
+        // --- LÓGICA DE FORMULARIO DE VIAJE ---
         selectNombres.addEventListener('change', () => {
             const nombreSeleccionado = selectNombres.value;
             selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
@@ -379,6 +347,7 @@
             volumenInput.value = selectedOption.dataset.volumen || '';
         });
 
+        // --- LÓGICA PARA RENDERIZAR DATOS ---
         const cargarRegistros = async (customQuery = null) => {
             const q = customQuery ? customQuery : query(collection(db, "registros"));
             const snapshot = await getDocs(q);
@@ -401,7 +370,10 @@
         };
         
         btnFiltrar.addEventListener('click', () => {
-            const q = query(collection(db, "registros"), where("fecha", ">=", fechaInicioInput.value), where("fecha", "<=", fechaFinInput.value));
+            const fechaInicio = fechaInicioInput.value;
+            const fechaFin = fechaFinInput.value;
+            if (!fechaInicio || !fechaFin) { return alert('Por favor, seleccione una fecha de inicio y una de fin.'); }
+            const q = query(collection(db, "registros"), where("fecha", ">=", fechaInicio), where("fecha", "<=", fechaFin));
             cargarRegistros(q);
         });
         btnMostrarTodo.addEventListener('click', () => {
@@ -475,7 +447,7 @@
             else { await addDoc(collection(db, "registros"), registro); }
             cargarRegistros();
             cancelarEdicion();
-        };
+        });
 
         const inicializarApp = async () => {
             await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
@@ -485,11 +457,9 @@
             await administrarChoferesVehiculos();
             await cargarRegistros();
         };
-        
-        // Ejecutar el script principal después de que el DOM esté listo
-        document.addEventListener('DOMContentLoaded', inicializarApp);
-    }
-</script>
 
+        inicializarApp();
+    });
+</script>
 </body>
 </html>
