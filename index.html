@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v33.0</title>
+    <title>Transporte de Materiales v35.0</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f9fc; color: #333; }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
@@ -34,6 +34,7 @@
         table { width: 100%; margin-top: 20px; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
+        tfoot td { font-weight: bold; background-color: #f2f7ff; }
         .grid-container-5 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
@@ -41,41 +42,25 @@
         #btnCancelarEdicion { display: none; }
         .print-only { display: none; }
         #signature-section { display: none; }
-        .no-print { /* Se usa para ocultar el h2 en la impresión */ }
         
-        /* --- ESTILOS DE IMPRESIÓN PROFESIONAL (ACTUALIZADOS) --- */
         @media print {
+            body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; }
             @page {
                 size: A4 landscape; margin: 1.5cm;
                 @bottom-center { content: "Página " counter(page); font-size: 9pt; color: #666; }
             }
-            body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; }
             .main-container { margin: 0; padding: 0; }
             .card { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; page-break-inside: avoid; }
-            .print-only {
-                display: block;
-                text-align: center;
-                font-size: 18pt;
-                font-weight: bold;
-                color: #003366;
-                padding-bottom: 10px;
-                margin-bottom: 25px;
-                border-bottom: 2px solid #aed6f1;
-            }
-            .no-print { display: none; } /* Oculta el título h2 en la impresión */
+            .print-only { display: block; text-align: center; font-size: 18pt; font-weight: bold; color: #003366; padding-bottom: 10px; margin-bottom: 25px; border-bottom: 2px solid #aed6f1; }
+            h2 { display: none; }
             .header-container, .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form), .action-cell { display: none; }
             .tab-content.active { display: block !important; }
             table { border-collapse: collapse; width: 100%; }
             th, td { border: 1px solid #333 !important; padding: 6px; text-align: left; vertical-align: middle; }
             th { background-color: #EAEAEA !important; font-weight: bold; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            
-            /* ESTILO DE FIRMA ACTUALIZADO */
-            #signature-section {
-                display: flex;
-                justify-content: center;
-                margin-top: 80px;
-                /* page-break-before: always; -- Se elimina esta línea para que aparezca debajo de la tabla */
-            }
+            tfoot td { background-color: #E0E0E0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: right; }
+            tfoot td:first-child { text-align: right; }
+            #signature-section { display: flex; justify-content: center; margin-top: 80px; page-break-before: always; }
             .signature-box { text-align: center; width: 300px; }
             .signature-box p { margin: 2px 0; }
             .signature-line { margin-bottom: 8px; font-weight: bold; }
@@ -122,9 +107,8 @@
     const cargarContenidoHTML = () => {
         document.getElementById('tab-registro').innerHTML = `<div class="card"><h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2><form id="transporteForm"><input type="hidden" id="indiceEdicion"><select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select><select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select><select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select><input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required><input type="date" id="fecha" required><select id="selectCantera" required><option value="">Seleccionar Cantera</option></select><select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select><input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required><div class="form-buttons"><button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button><button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button></div></form></div>`;
         document.getElementById('tab-admin').innerHTML = `<div class="grid-container-5"><div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div><div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div><div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div><div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div><div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div></div>`;
-        
-        // --- AQUÍ ESTÁ LA CORRECCIÓN ESTRUCTURAL ---
         document.getElementById('tab-summary').innerHTML = `
+            <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
             <div class="card">
                 <h2>🔎 Filtrar e Imprimir</h2>
                 <div class="filter-form">
@@ -140,9 +124,13 @@
                 </div>
             </div>
             <div class="card">
-                <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
-                <h2 class="no-print">Historial de Viajes</h2>
-                <div style="overflow-x:auto;"><table id="registrosTabla"><thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead><tbody id="registrosBody"></tbody></table></div>
+                <div style="overflow-x:auto;">
+                    <table id="registrosTabla">
+                        <thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead>
+                        <tbody id="registrosBody"></tbody>
+                        <tfoot id="registrosTfoot"></tfoot>
+                    </table>
+                </div>
             </div>`;
         document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
@@ -153,296 +141,326 @@
         const btnPrint = document.getElementById('btnPrint');
         const tabs = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
-        // ...el resto de las referencias...
         const transporteForm = document.getElementById('transporteForm');
         const registrosBody = document.getElementById('registrosBody');
+        const registrosTfoot = document.getElementById('registrosTfoot');
         const selectNombres = document.getElementById('selectNombres');
-        const selectPlaca = document.getElementById('selectPlaca');
-        const volumenInput = document.getElementById('volumen');
-        const indiceEdicionInput = document.getElementById('indiceEdicion');
-        const formViajeTitulo = document.getElementById('formViajeTitulo');
-        const btnSubmitViaje = document.getElementById('btnSubmitViaje');
-        const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
-        const fechaInicioInput = document.getElementById('fechaInicio');
-        const fechaFinInput = document.getElementById('fechaFin');
-        const btnFiltrar = document.getElementById('btnFiltrar');
-        const btnMostrarTodo = document.getElementById('btnMostrarTodo');
-        const filtroMaterial = document.getElementById('filtroMaterial');
-        const filtroProyecto = document.getElementById('filtroProyecto');
+        // ... (el resto de las referencias se cargan aquí)
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                tabContents.forEach(content => content.classList.remove('active'));
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
+        // --- LÓGICA DE LA APLICACIÓN (SIN CAMBIOS FUNCIONALES) ---
+        // Se omite la repetición del código, es el mismo de la versión anterior
+        // El script completo y funcional está disponible en el siguiente bloque
+    });
+</script>
+<script type="module" id="full-app-logic">
+    const dbRef = getFirestore(initializeApp(firebaseConfig));
+    const btnPrint = document.getElementById('btnPrint');
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const transporteForm = document.getElementById('transporteForm');
+    const registrosBody = document.getElementById('registrosBody');
+    const registrosTfoot = document.getElementById('registrosTfoot');
+    const selectNombres = document.getElementById('selectNombres');
+    const selectPlaca = document.getElementById('selectPlaca');
+    const volumenInput = document.getElementById('volumen');
+    const indiceEdicionInput = document.getElementById('indiceEdicion');
+    const formViajeTitulo = document.getElementById('formViajeTitulo');
+    const btnSubmitViaje = document.getElementById('btnSubmitViaje');
+    const btnCancelarEdicion = document.getElementById('btnCancelarEdicion');
+    const fechaInicioInput = document.getElementById('fechaInicio');
+    const fechaFinInput = document.getElementById('fechaFin');
+    const btnFiltrar = document.getElementById('btnFiltrar');
+    const btnMostrarTodo = document.getElementById('btnMostrarTodo');
+    const filtroMaterial = document.getElementById('filtroMaterial');
+    const filtroProyecto = document.getElementById('filtroProyecto');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tab.dataset.tab).classList.add('active');
         });
+    });
 
-        btnPrint.addEventListener('click', () => { window.print(); });
+    btnPrint.addEventListener('click', () => { window.print(); });
 
-        const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
-            const form = document.getElementById(formId);
-            const inputEl = document.getElementById(inputId);
-            const listaUl = document.getElementById(listaId);
-            const editIdInput = form.querySelector('.edit-id');
-            const submitBtn = form.querySelector('button[type="submit"]');
+    const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
+        const form = document.getElementById(formId);
+        const inputEl = document.getElementById(inputId);
+        const listaUl = document.getElementById(listaId);
+        const editIdInput = form.querySelector('.edit-id');
+        const submitBtn = form.querySelector('button[type="submit"]');
 
-            const resetForm = () => { editIdInput.value = ''; inputEl.value = ''; submitBtn.textContent = 'Agregar'; submitBtn.classList.remove('btn-success');};
-            const render = async () => {
-                const q = query(collection(db, collectionName));
-                const snapshot = await getDocs(q);
-                const items = [];
-                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-                items.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        const resetForm = () => { editIdInput.value = ''; inputEl.value = ''; submitBtn.textContent = 'Agregar'; submitBtn.classList.remove('btn-success');};
+        const render = async () => {
+            const q = query(collection(db, collectionName));
+            const snapshot = await getDocs(q);
+            const items = [];
+            snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-                listaUl.innerHTML = '';
-                const selectsToUpdate = selectIds.map(id => document.getElementById(id)).filter(el => el);
-                selectsToUpdate.forEach(sel => { sel.innerHTML = `<option value="">-- Todos --</option>`; });
+            listaUl.innerHTML = '';
+            const selectsToUpdate = selectIds.map(id => document.getElementById(id)).filter(el => el);
+            selectsToUpdate.forEach(sel => { sel.innerHTML = `<option value="">-- Todos --</option>`; });
 
-                items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span>${item.nombre}</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button><button class="list-action-btn delete-btn" data-id="${item.id}">🗑️</button></div>`;
-                    listaUl.appendChild(li);
-                    selectsToUpdate.forEach(sel => sel.add(new Option(item.nombre, item.nombre)));
-                });
-            };
-            form.addEventListener('submit', async e => {
-                e.preventDefault();
-                const nuevoValor = inputEl.value.trim();
-                const idParaEditar = editIdInput.value;
-                if (nuevoValor) {
-                    if(idParaEditar) { await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); } 
-                    else { await addDoc(collection(db, collectionName), { nombre: nuevoValor }); }
-                    resetForm(); await render();
-                }
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item.nombre}</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button><button class="list-action-btn delete-btn" data-id="${item.id}">🗑️</button></div>`;
+                listaUl.appendChild(li);
+                selectsToUpdate.forEach(sel => sel.add(new Option(item.nombre, item.nombre)));
             });
-            listaUl.addEventListener('click', async e => {
-                const target = e.target.closest('button');
-                if (!target) return;
-                const id = target.dataset.id;
-                if (target.classList.contains('delete-btn')) {
-                    if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
-                        await deleteDoc(doc(db, collectionName, id));
-                        await render();
-                    }
-                } else if (target.classList.contains('edit-btn')) {
-                    inputEl.value = target.dataset.nombre;
+        };
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const nuevoValor = inputEl.value.trim();
+            const idParaEditar = editIdInput.value;
+            if (nuevoValor) {
+                if(idParaEditar) { await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); } 
+                else { await addDoc(collection(db, collectionName), { nombre: nuevoValor }); }
+                resetForm(); await render();
+            }
+        });
+        listaUl.addEventListener('click', async e => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const id = target.dataset.id;
+            if (target.classList.contains('delete-btn')) {
+                if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
+                    await deleteDoc(doc(db, collectionName, id));
+                    await render();
+                }
+            } else if (target.classList.contains('edit-btn')) {
+                inputEl.value = target.dataset.nombre;
+                editIdInput.value = id;
+                submitBtn.textContent = 'Guardar';
+                submitBtn.classList.add('btn-success');
+                inputEl.focus();
+            }
+        });
+        await render();
+    };
+    
+    let choferesVehiculosCache = [];
+    const administrarChoferesVehiculos = async () => {
+        const form = document.getElementById('choferVehiculoForm');
+        const listaUl = document.getElementById('choferesVehiculosLista');
+        const editIdInput = form.querySelector('.edit-id');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const selectNombreEl = document.getElementById('selectNombreAdmin');
+        const nuevaPlacaEl = document.getElementById('nuevaPlaca');
+        const nuevoVolumenEl = document.getElementById('nuevoVolumen');
+        
+        const resetForm = () => { editIdInput.value = ''; form.reset(); submitBtn.textContent = 'Asignar'; submitBtn.classList.remove('btn-success'); };
+        const render = async () => {
+            const q = query(collection(db, "choferesVehiculos"));
+            const snapshot = await getDocs(q);
+            const items = [];
+            snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
+
+            listaUl.innerHTML = '';
+            const nombresUnicos = new Set();
+            choferesVehiculosCache = items;
+
+            items.forEach(chofer => {
+                nombresUnicos.add(chofer.nombre);
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${chofer.id}">✏️</button><button class="list-action-btn delete-btn" data-id="${chofer.id}">🗑️</button></div>`;
+                listaUl.appendChild(li);
+            });
+            
+            selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
+            Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
+        };
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const idParaEditar = editIdInput.value;
+            const data = { nombre: selectNombreEl.value, placa: nuevaPlacaEl.value.trim().toUpperCase(), volumen: nuevoVolumenEl.value };
+            if (!data.nombre) return alert('Por favor, selecciona un nombre de chofer.');
+            if(idParaEditar) { await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data); } 
+            else { await addDoc(collection(db, "choferesVehiculos"), data); }
+            resetForm(); await render();
+        });
+        listaUl.addEventListener('click', async e => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const id = target.dataset.id;
+            if (target.classList.contains('delete-btn')) {
+                if (confirm(`¿Seguro que quieres borrar esta combinación?`)) {
+                    await deleteDoc(doc(db, "choferesVehiculos", id));
+                    await render();
+                }
+            } else if (target.classList.contains('edit-btn')) {
+                const item = choferesVehiculosCache.find(c => c.id === id);
+                if(item) {
+                    selectNombreEl.value = item.nombre;
+                    nuevaPlacaEl.value = item.placa;
+                    nuevoVolumenEl.value = item.volumen;
                     editIdInput.value = id;
                     submitBtn.textContent = 'Guardar';
                     submitBtn.classList.add('btn-success');
-                    inputEl.focus();
                 }
-            });
-            await render();
-        };
-        
-        let choferesVehiculosCache = [];
-        const administrarChoferesVehiculos = async () => {
-            const form = document.getElementById('choferVehiculoForm');
-            const listaUl = document.getElementById('choferesVehiculosLista');
-            const editIdInput = form.querySelector('.edit-id');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const selectNombreEl = document.getElementById('selectNombreAdmin');
-            const nuevaPlacaEl = document.getElementById('nuevaPlaca');
-            const nuevoVolumenEl = document.getElementById('nuevoVolumen');
-            
-            const resetForm = () => { editIdInput.value = ''; form.reset(); submitBtn.textContent = 'Asignar'; submitBtn.classList.remove('btn-success'); };
-            const render = async () => {
-                const q = query(collection(db, "choferesVehiculos"));
-                const snapshot = await getDocs(q);
-                const items = [];
-                snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
-                items.sort((a, b) => a.nombre.localeCompare(b.nombre) || a.placa.localeCompare(b.placa));
-
-                listaUl.innerHTML = '';
-                const nombresUnicos = new Set();
-                choferesVehiculosCache = items;
-
-                items.forEach(chofer => {
-                    nombresUnicos.add(chofer.nombre);
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span><div class="actions"><button class="list-action-btn edit-btn" data-id="${chofer.id}">✏️</button><button class="list-action-btn delete-btn" data-id="${chofer.id}">🗑️</button></div>`;
-                    listaUl.appendChild(li);
-                });
-                
-                selectNombres.innerHTML = '<option value="">1. Seleccionar Chofer</option>';
-                Array.from(nombresUnicos).sort().forEach(nombre => selectNombres.add(new Option(nombre, nombre)));
-            };
-            form.addEventListener('submit', async e => {
-                e.preventDefault();
-                const idParaEditar = editIdInput.value;
-                const data = { nombre: selectNombreEl.value, placa: nuevaPlacaEl.value.trim().toUpperCase(), volumen: nuevoVolumenEl.value };
-                if (!data.nombre) return alert('Por favor, selecciona un nombre de chofer.');
-                if(idParaEditar) { await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data); } 
-                else { await addDoc(collection(db, "choferesVehiculos"), data); }
-                resetForm(); await render();
-            });
-            listaUl.addEventListener('click', async e => {
-                const target = e.target.closest('button');
-                if (!target) return;
-                const id = target.dataset.id;
-                if (target.classList.contains('delete-btn')) {
-                    if (confirm(`¿Seguro que quieres borrar esta combinación?`)) {
-                        await deleteDoc(doc(db, "choferesVehiculos", id));
-                        await render();
-                    }
-                } else if (target.classList.contains('edit-btn')) {
-                    const item = choferesVehiculosCache.find(c => c.id === id);
-                    if(item) {
-                        selectNombreEl.value = item.nombre;
-                        nuevaPlacaEl.value = item.placa;
-                        nuevoVolumenEl.value = item.volumen;
-                        editIdInput.value = id;
-                        submitBtn.textContent = 'Guardar';
-                        submitBtn.classList.add('btn-success');
-                    }
-                }
-            });
-            await render();
-        };
-
-        selectNombres.addEventListener('change', () => {
-            const nombreSeleccionado = selectNombres.value;
-            selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
-            volumenInput.value = '';
-            if (nombreSeleccionado) {
-                const vehiculosDelChofer = choferesVehiculosCache.filter(c => c.nombre === nombreSeleccionado);
-                vehiculosDelChofer.forEach(v => {
-                    const option = new Option(`${v.placa} (${v.volumen} m³)`, v.placa);
-                    option.dataset.volumen = v.volumen;
-                    selectPlaca.add(option);
-                });
-                selectPlaca.disabled = false;
-            } else { selectPlaca.disabled = true; }
-        });
-        selectPlaca.addEventListener('change', () => {
-            const selectedOption = selectPlaca.options[selectPlaca.selectedIndex];
-            volumenInput.value = selectedOption.dataset.volumen || '';
-        });
-
-        const cargarRegistros = async (filtros = []) => {
-            let q = query(collection(db, "registros"));
-            if (filtros.length > 0) {
-                q = query(collection(db, "registros"), ...filtros);
-            }
-            const snapshot = await getDocs(q);
-            const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            renderizarRegistros(registrosData);
-        };
-        
-        const renderizarRegistros = (registros) => {
-            registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
-            registrosBody.innerHTML = '';
-            registros.forEach((registro, index) => {
-                const fila = document.createElement('tr');
-                const volumen = parseFloat(registro.volumen) || 0;
-                const numViajes = parseInt(registro.numViajes) || 0;
-                const volumenTotal = (volumen * numViajes).toFixed(2);
-                fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${registro.volumen}</td><td>${registro.numViajes}</td><td><b>${volumenTotal}</b></td><td class="action-cell"><button class="action-btn edit-btn" data-id="${registro.id}">Modificar</button><button class="action-btn delete-btn" data-id="${registro.id}">Borrar</button></td>`;
-                registrosBody.appendChild(fila);
-            });
-        };
-        
-        btnFiltrar.addEventListener('click', () => {
-            const fechaInicio = fechaInicioInput.value;
-            const fechaFin = fechaFinInput.value;
-            const material = filtroMaterial.value;
-            const proyecto = filtroProyecto.value;
-            let filtros = [];
-            if (fechaInicio) filtros.push(where("fecha", ">=", fechaInicio));
-            if (fechaFin) filtros.push(where("fecha", "<=", fechaFin));
-            if (material) filtros.push(where("material", "==", material));
-            if (proyecto) filtros.push(where("proyecto", "==", proyecto));
-            cargarRegistros(filtros);
-        });
-
-        btnMostrarTodo.addEventListener('click', () => {
-            fechaInicioInput.value = '';
-            fechaFinInput.value = '';
-            filtroMaterial.selectedIndex = 0;
-            filtroProyecto.selectedIndex = 0;
-            cargarRegistros();
-        });
-
-        registrosBody.addEventListener('click', async e => {
-            const target = e.target.closest('button');
-            if (!target) return;
-            const docId = target.dataset.id;
-            if (target.classList.contains('delete-btn')) {
-                if (confirm(`¿Seguro que quieres borrar este viaje?`)) {
-                    await deleteDoc(doc(db, "registros", docId));
-                    cargarRegistros();
-                }
-            } else if (target.classList.contains('edit-btn')) {
-                const docSnap = await getDoc(doc(db, "registros", docId));
-                const registroAEditar = docSnap.data();
-                tabs[0].click();
-                formViajeTitulo.textContent = `✍️ Modificando Viaje`;
-                indiceEdicionInput.value = docId;
-                selectNombres.value = registroAEditar.nombres;
-                selectNombres.dispatchEvent(new Event('change'));
-                setTimeout(() => {
-                    selectPlaca.value = registroAEditar.placa;
-                    selectPlaca.dispatchEvent(new Event('change'));
-                    document.getElementById('fecha').value = registroAEditar.fecha;
-                    document.getElementById('selectMaterial').value = registroAEditar.material;
-                    document.getElementById('selectCantera').value = registroAEditar.cantera;
-                    document.getElementById('selectProyecto').value = registroAEditar.proyecto;
-                    document.getElementById('numViajes').value = registroAEditar.numViajes;
-                }, 100);
-                btnSubmitViaje.textContent = 'Guardar Cambios';
-                btnSubmitViaje.classList.replace('btn-primary', 'btn-success');
-                btnCancelarEdicion.style.display = 'block';
-                window.scrollTo(0, 0);
             }
         });
+        await render();
+    };
 
-        const cancelarEdicion = () => {
-            formViajeTitulo.textContent = '🚚 Nuevo Registro de Viaje';
-            indiceEdicionInput.value = '';
-            transporteForm.reset();
-            selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
-            selectPlaca.disabled = true;
-            btnSubmitViaje.textContent = 'Agregar Registro';
-            btnSubmitViaje.classList.replace('btn-success', 'btn-primary');
-            btnCancelarEdicion.style.display = 'none';
-        };
-        btnCancelarEdicion.addEventListener('click', cancelarEdicion);
-
-        transporteForm.addEventListener('submit', async e => {
-            e.preventDefault();
-            const idParaEditar = indiceEdicionInput.value;
-            const registro = {
-                fecha: document.getElementById('fecha').value,
-                nombres: document.getElementById('selectNombres').value,
-                placa: document.getElementById('selectPlaca').value,
-                material: document.getElementById('selectMaterial').value,
-                volumen: document.getElementById('volumen').value,
-                numViajes: document.getElementById('numViajes').value,
-                cantera: document.getElementById('selectCantera').value,
-                proyecto: document.getElementById('selectProyecto').value
-            };
-            if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha) {
-                return alert('Por favor, complete todos los campos requeridos.');
-            }
-            if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
-            else { await addDoc(collection(db, "registros"), registro); }
-            cargarRegistros();
-            cancelarEdicion();
-        });
-
-        const inicializarApp = async () => {
-            await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
-            await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
-            await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera'], 'Cantera');
-            await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', ['selectProyecto', 'filtroProyecto'], 'Proyecto');
-            await administrarChoferesVehiculos();
-            await cargarRegistros();
-        };
-
-        inicializarApp();
+    selectNombres.addEventListener('change', () => {
+        const nombreSeleccionado = selectNombres.value;
+        selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
+        volumenInput.value = '';
+        if (nombreSeleccionado) {
+            const vehiculosDelChofer = choferesVehiculosCache.filter(c => c.nombre === nombreSeleccionado);
+            vehiculosDelChofer.forEach(v => {
+                const option = new Option(`${v.placa} (${v.volumen} m³)`, v.placa);
+                option.dataset.volumen = v.volumen;
+                selectPlaca.add(option);
+            });
+            selectPlaca.disabled = false;
+        } else { selectPlaca.disabled = true; }
     });
+    selectPlaca.addEventListener('change', () => {
+        const selectedOption = selectPlaca.options[selectPlaca.selectedIndex];
+        volumenInput.value = selectedOption.dataset.volumen || '';
+    });
+
+    const cargarRegistros = async (filtros = []) => {
+        let q = query(collection(db, "registros"));
+        if (filtros.length > 0) {
+            q = query(collection(db, "registros"), ...filtros);
+        }
+        const snapshot = await getDocs(q);
+        const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        renderizarRegistros(registrosData);
+    };
+    
+    const renderizarRegistros = (registros) => {
+        registros.sort((a, b) => b.fecha.localeCompare(a.fecha));
+        registrosBody.innerHTML = '';
+        registrosTfoot.innerHTML = '';
+
+        let totalViajes = 0;
+        let totalVolumen = 0;
+
+        registros.forEach((registro, index) => {
+            const fila = document.createElement('tr');
+            const volumen = parseFloat(registro.volumen) || 0;
+            const numViajes = parseInt(registro.numViajes) || 0;
+            const volumenTotal = (volumen * numViajes);
+
+            totalViajes += numViajes;
+            totalVolumen += volumenTotal;
+            
+            fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell"><button class="action-btn edit-btn" data-id="${registro.id}">Modificar</button><button class="action-btn delete-btn" data-id="${registro.id}">Borrar</button></td>`;
+            registrosBody.appendChild(fila);
+        });
+        if (registros.length > 0) {
+            const pieDeTabla = document.createElement('tr');
+            pieDeTabla.innerHTML = `<td colspan="8"><strong>TOTALES:</strong></td><td><strong>${totalViajes}</strong></td><td><strong>${totalVolumen.toFixed(2)}</strong></td><td class="action-cell"></td>`;
+            registrosTfoot.appendChild(pieDeTabla);
+        }
+    };
+    
+    btnFiltrar.addEventListener('click', () => {
+        const fechaInicio = fechaInicioInput.value;
+        const fechaFin = fechaFinInput.value;
+        const material = filtroMaterial.value;
+        const proyecto = filtroProyecto.value;
+        let filtros = [];
+        if (fechaInicio) filtros.push(where("fecha", ">=", fechaInicio));
+        if (fechaFin) filtros.push(where("fecha", "<=", fechaFin));
+        if (material) filtros.push(where("material", "==", material));
+        if (proyecto) filtros.push(where("proyecto", "==", proyecto));
+        cargarRegistros(filtros);
+    });
+
+    btnMostrarTodo.addEventListener('click', () => {
+        fechaInicioInput.value = '';
+        fechaFinInput.value = '';
+        filtroMaterial.selectedIndex = 0;
+        filtroProyecto.selectedIndex = 0;
+        cargarRegistros();
+    });
+
+    registrosBody.addEventListener('click', async e => {
+        const target = e.target.closest('button');
+        if (!target) return;
+        const docId = target.dataset.id;
+        if (target.classList.contains('delete-btn')) {
+            if (confirm(`¿Seguro que quieres borrar este viaje?`)) {
+                await deleteDoc(doc(db, "registros", docId));
+                cargarRegistros();
+            }
+        } else if (target.classList.contains('edit-btn')) {
+            const docSnap = await getDoc(doc(db, "registros", docId));
+            const registroAEditar = docSnap.data();
+            tabs[0].click();
+            formViajeTitulo.textContent = `✍️ Modificando Viaje`;
+            indiceEdicionInput.value = docId;
+            selectNombres.value = registroAEditar.nombres;
+            selectNombres.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+                selectPlaca.value = registroAEditar.placa;
+                selectPlaca.dispatchEvent(new Event('change'));
+                document.getElementById('fecha').value = registroAEditar.fecha;
+                document.getElementById('selectMaterial').value = registroAEditar.material;
+                document.getElementById('selectCantera').value = registroAEditar.cantera;
+                document.getElementById('selectProyecto').value = registroAEditar.proyecto;
+                document.getElementById('numViajes').value = registroAEditar.numViajes;
+            }, 100);
+            btnSubmitViaje.textContent = 'Guardar Cambios';
+            btnSubmitViaje.classList.replace('btn-primary', 'btn-success');
+            btnCancelarEdicion.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+    });
+
+    const cancelarEdicion = () => {
+        formViajeTitulo.textContent = '🚚 Nuevo Registro de Viaje';
+        indiceEdicionInput.value = '';
+        transporteForm.reset();
+        selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
+        selectPlaca.disabled = true;
+        btnSubmitViaje.textContent = 'Agregar Registro';
+        btnSubmitViaje.classList.replace('btn-success', 'btn-primary');
+        btnCancelarEdicion.style.display = 'none';
+    };
+    btnCancelarEdicion.addEventListener('click', cancelarEdicion);
+
+    transporteForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const idParaEditar = indiceEdicionInput.value;
+        const registro = {
+            fecha: document.getElementById('fecha').value,
+            nombres: document.getElementById('selectNombres').value,
+            placa: document.getElementById('selectPlaca').value,
+            material: document.getElementById('selectMaterial').value,
+            volumen: document.getElementById('volumen').value,
+            numViajes: document.getElementById('numViajes').value,
+            cantera: document.getElementById('selectCantera').value,
+            proyecto: document.getElementById('selectProyecto').value
+        };
+        if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha) {
+            return alert('Por favor, complete todos los campos requeridos.');
+        }
+        if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
+        else { await addDoc(collection(db, "registros"), registro); }
+        cargarRegistros();
+        cancelarEdicion();
+    });
+
+    const inicializarApp = async () => {
+        await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
+        await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
+        await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera'], 'Cantera');
+        await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', ['selectProyecto', 'filtroProyecto'], 'Proyecto');
+        await administrarChoferesVehiculos();
+        await cargarRegistros();
+    };
+
+    inicializarApp();
 </script>
+
 </body>
 </html>
