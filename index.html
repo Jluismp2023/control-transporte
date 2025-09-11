@@ -126,6 +126,8 @@
             <div class="card">
                 <h2>🔎 Filtrar e Imprimir</h2>
                 <div class="filter-form">
+                    <label for="filtroMes"><strong>Filtrar por Mes:</strong></label><input type="month" id="filtroMes">
+                    <span style="border-left: 1px solid #ccc; margin: 0 10px;"></span>
                     <label for="fechaInicio">Desde:</label><input type="date" id="fechaInicio">
                     <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
                     <label for="filtroMaterial">Material:</label>
@@ -174,6 +176,24 @@
         const filtroMaterial = document.getElementById('filtroMaterial');
         const filtroProyecto = document.getElementById('filtroProyecto');
         
+        // --- INICIO DEL CÓDIGO PARA FILTRO POR MES ---
+        const filtroMesInput = document.getElementById('filtroMes');
+        filtroMesInput.addEventListener('change', () => {
+            const mesSeleccionado = filtroMesInput.value;
+            if (!mesSeleccionado) {
+                fechaInicioInput.value = '';
+                fechaFinInput.value = '';
+                return;
+            }
+            const [year, month] = mesSeleccionado.split('-').map(Number);
+            const primerDia = new Date(year, month - 1, 1);
+            const ultimoDia = new Date(year, month, 0);
+            fechaInicioInput.value = primerDia.toISOString().slice(0, 10);
+            fechaFinInput.value = ultimoDia.toISOString().slice(0, 10);
+            btnFiltrar.click();
+        });
+        // --- FIN DEL CÓDIGO PARA FILTRO POR MES ---
+
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.remove('active'));
@@ -378,6 +398,7 @@
             fechaFinInput.value = '';
             filtroMaterial.selectedIndex = 0;
             filtroProyecto.selectedIndex = 0;
+            document.getElementById('filtroMes').value = ''; // Limpiar también el filtro de mes
             cargarRegistros();
         });
 
