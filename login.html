@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Transporte de Materiales</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f9fc; }
+        .login-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        h1 { color: #0056b3; margin-bottom: 25px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        button { padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; background-color: #0056b3; color: white; transition: background-color 0.3s; }
+        button:hover { background-color: #004494; }
+        #error-message { color: #dc3545; margin-top: 15px; font-weight: bold; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1>Iniciar Sesión</h1>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Correo Electrónico" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit">Ingresar</button>
+        </form>
+        <p id="error-message"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        // TU CONFIGURACIÓN DE FIREBASE (la misma de tu index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtDX8xK1m1VxjfRMFsDZXoAH36l8Izyz8",
+            authDomain: "control-transporte-c4f61.firebaseapp.com",
+            projectId: "control-transporte-c4f61",
+            storageBucket: "control-transporte-c4f61.appspot.com",
+            messagingSenderId: "447956658904",
+            appId: "1:447956658904:web:81e9b40fb55107f93ec5ad"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('error-message');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Si el inicio de sesión es exitoso, redirige a la página principal
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    // Muestra un mensaje de error si las credenciales son incorrectas
+                    errorMessage.textContent = 'Usuario o contraseña incorrectos.';
+                });
+        });
+    </script>
+</body>
+</html>
