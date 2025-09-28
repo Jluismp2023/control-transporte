@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v39.0</title>
+    <title>Transporte de Materiales v40.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -65,7 +65,6 @@
         th, td { border: 1px solid var(--color-borde); padding: 10px; text-align: left; word-break: break-word; }
         th { background-color: #f2f7ff; }
         tfoot td { font-weight: bold; background-color: #f2f7ff; }
-        /* MEJORA: Estilos para la tabla de reportes */
         #registrosBody tr:nth-child(even) { background-color: var(--color-fondo); }
         #registrosBody tr:hover { background-color: #E9ECEF; }
         .grid-container-5 { display: grid; gap: 30px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
@@ -273,6 +272,16 @@
                     items.forEach(item => sel.add(new Option(item.nombre, item.nombre)));
                     sel.value = currentValue;
                 });
+
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${item.nombre}</span>
+                                    <div class="actions">
+                                        <button class="list-action-btn edit-btn" title="Modificar" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button>
+                                        <button class="list-action-btn delete-btn" title="Borrar" data-id="${item.id}">🗑️</button>
+                                    </div>`;
+                    listaUl.appendChild(li);
+                });
             };
             form.addEventListener('submit', async e => {
                 e.preventDefault();
@@ -294,8 +303,7 @@
                         await render();
                     }
                 } else if (target.classList.contains('edit-btn')) {
-                    const docSnap = await getDoc(doc(db, collectionName, id));
-                    inputEl.value = docSnap.data().nombre;
+                    inputEl.value = target.dataset.nombre;
                     editIdInput.value = id;
                     submitBtn.textContent = 'Guardar';
                     submitBtn.classList.add('btn-success');
@@ -406,7 +414,6 @@
             registrosBody.innerHTML = '';
             registrosTfoot.innerHTML = '';
 
-            // MEJORA: Mensaje de estado vacío
             if (registros.length === 0) {
                 registrosBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
                 return;
@@ -422,7 +429,6 @@
                 const volumenTotal = (volumen * numViajes);
                 totalViajes += numViajes;
                 totalVolumen += volumenTotal;
-                // MEJORA: Botones con iconos
                 fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell" style="display: flex; gap: 5px;"><button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button><button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button></td>`;
                 registrosBody.appendChild(fila);
             });
@@ -504,7 +510,6 @@
 
         transporteForm.addEventListener('submit', async e => {
             e.preventDefault();
-            // MEJORA: Indicador de carga en el botón
             const btn = btnSubmitViaje;
             const originalText = btn.textContent;
             btn.disabled = true;
@@ -534,10 +539,8 @@
                 console.error("Error al guardar el registro:", error);
                 alert("Hubo un error al guardar el registro.");
             } finally {
-                // Restaura el botón sin importar si hubo éxito o error
                 btn.disabled = false;
                 btn.textContent = originalText;
-                 // Si no está en modo edición, restaura el texto original
                 if (!indiceEdicionInput.value) {
                     btn.textContent = 'Agregar Registro';
                 }
