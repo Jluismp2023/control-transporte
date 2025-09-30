@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v41.0</title>
+    <title>Transporte de Materiales v42.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
             margin: 0; 
             background-color: var(--color-fondo); 
             color: var(--color-texto); 
+            display: none; /* Oculta el cuerpo por defecto para evitar parpadeo antes de la verificación de auth */
         }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
@@ -158,7 +159,7 @@
         if (!user) {
             window.location.href = 'login.html';
         } else {
-            document.body.style.display = 'block'; // Muestra el contenido si el usuario está logueado
+            document.body.style.display = 'block';
             inicializarApp();
         }
     });
@@ -180,6 +181,8 @@
                     <label for="fechaFin">Hasta:</label><input type="date" id="fechaFin">
                     <label for="filtroMaterial">Material:</label>
                     <select id="filtroMaterial"><option value="">-- Todos --</option></select>
+                    <label for="filtroCantera">Cantera:</label>
+                    <select id="filtroCantera"><option value="">-- Todas --</option></select>
                     <label for="filtroProyecto">Proyecto:</label>
                     <select id="filtroProyecto"><option value="">-- Todos --</option></select>
                     <button id="btnFiltrar" class="btn-primary">Filtrar</button>
@@ -201,7 +204,6 @@
         document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
     
-    // Variable global para mantener la instancia del gráfico
     let miGraficoDeBarras;
 
     const renderizarRegistros = (registros) => {
@@ -212,7 +214,6 @@
         registrosBody.innerHTML = '';
         registrosTfoot.innerHTML = '';
 
-        // --- CÓDIGO PARA EL GRÁFICO ---
         const volumenPorMaterial = registros.reduce((acc, registro) => {
             const material = registro.material || 'No especificado';
             const volumenTotal = (parseFloat(registro.volumen) || 0) * (parseInt(registro.numViajes) || 0);
@@ -240,7 +241,6 @@
             options: { scales: { y: { beginAtZero: true } }, responsive: true, plugins: { legend: { display: false } } }
         });
 
-        // --- CÓDIGO PARA LA TABLA ---
         if (registros.length === 0) {
             registrosBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
             return;
@@ -413,15 +413,33 @@
         }));
         
         document.getElementById('btnPrint').addEventListener('click', () => window.print());
+        
+        document.getElementById('filtroMes').addEventListener('change', () => {
+            const mesSeleccionado = document.getElementById('filtroMes').value;
+            if (!mesSeleccionado) {
+                document.getElementById('fechaInicio').value = '';
+                document.getElementById('fechaFin').value = '';
+                return;
+            }
+            const [year, month] = mesSeleccionado.split('-').map(Number);
+            const primerDia = new Date(year, month - 1, 1);
+            const ultimoDia = new Date(year, month, 0);
+            document.getElementById('fechaInicio').value = primerDia.toISOString().slice(0, 10);
+            document.getElementById('fechaFin').value = ultimoDia.toISOString().slice(0, 10);
+            document.getElementById('btnFiltrar').click();
+        });
+
         document.getElementById('btnFiltrar').addEventListener('click', () => {
             const fechaInicio = document.getElementById('fechaInicio').value;
             const fechaFin = document.getElementById('fechaFin').value;
             const material = document.getElementById('filtroMaterial').value;
+            const cantera = document.getElementById('filtroCantera').value;
             const proyecto = document.getElementById('filtroProyecto').value;
             let filtros = [];
             if (fechaInicio) filtros.push(where("fecha", ">=", fechaInicio));
             if (fechaFin) filtros.push(where("fecha", "<=", fechaFin));
             if (material) filtros.push(where("material", "==", material));
+            if (cantera) filtros.push(where("cantera", "==", cantera));
             if (proyecto) filtros.push(where("proyecto", "==", proyecto));
             cargarRegistros(filtros);
         });
@@ -431,6 +449,7 @@
             document.getElementById('fechaInicio').value = '';
             document.getElementById('fechaFin').value = '';
             document.getElementById('filtroMaterial').selectedIndex = 0;
+            document.getElementById('filtroCantera').selectedIndex = 0;
             document.getElementById('filtroProyecto').selectedIndex = 0;
             cargarRegistros();
         });
@@ -543,7 +562,7 @@
         
         await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
         await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
-        await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera'], 'Cantera');
+        await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera', 'filtroCantera'], 'Cantera');
         await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', ['selectProyecto', 'filtroProyecto'], 'Proyecto');
         await administrarChoferesVehiculos();
         await cargarRegistros();
