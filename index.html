@@ -31,8 +31,8 @@
         }
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-        #logo { height: 50px; margin-right: 15px; }
-        h1 { color: var(--color-primario); margin: 0; }
+        #logo { height: 70px; margin-right: 15px; }
+        h1 { color: var(--color-primario); margin: 0; font-size: 1.8em; }
         h2, h3 { color: var(--color-primario); text-align: center; }
         h2 { border-bottom: 2px solid #eef; padding-bottom: 10px; }
         .card { 
@@ -124,7 +124,7 @@
 <div class="main-container">
     <div class="header-container">
         <img id="logo" src="logo.png" alt="Logo de la Empresa">
-        <h1>TRANSPORTE DE MATERIALES</h1>
+        <h1>OBRAS EQUIPOS Y CONSTRUCCIONES OBRECO CIA LTDA</h1>
         <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
     </div>
 
@@ -534,7 +534,7 @@
         });
         
         await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
-        await administrarListaS-imple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
+        await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
         await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera', 'filtroCantera'], 'Cantera');
         await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', ['selectProyecto', 'filtroProyecto'], 'Proyecto');
         await administrarChoferesVehiculos();
