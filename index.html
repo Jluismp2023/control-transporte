@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Paleta de colores moderna y centralizada */
         :root {
@@ -196,16 +195,10 @@
                         <tfoot id="registrosTfoot"></tfoot>
                     </table>
                 </div>
-            </div>
-            <div class="card">
-                <h2>Resumen Gráfico por Material</h2>
-                <canvas id="graficoMateriales"></canvas>
             </div>`;
         document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
     
-    let miGraficoDeBarras;
-
     const renderizarRegistros = (registros) => {
         const registrosBody = document.getElementById('registrosBody');
         const registrosTfoot = document.getElementById('registrosTfoot');
@@ -213,33 +206,6 @@
         registros.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
         registrosBody.innerHTML = '';
         registrosTfoot.innerHTML = '';
-
-        const volumenPorMaterial = registros.reduce((acc, registro) => {
-            const material = registro.material || 'No especificado';
-            const volumenTotal = (parseFloat(registro.volumen) || 0) * (parseInt(registro.numViajes) || 0);
-            if (!acc[material]) { acc[material] = 0; }
-            acc[material] += volumenTotal;
-            return acc;
-        }, {});
-
-        const labelsGrafico = Object.keys(volumenPorMaterial);
-        const dataGrafico = Object.values(volumenPorMaterial);
-        const ctx = document.getElementById('graficoMateriales').getContext('2d');
-        if (miGraficoDeBarras) { miGraficoDeBarras.destroy(); }
-        miGraficoDeBarras = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labelsGrafico,
-                datasets: [{
-                    label: 'Volumen Total (m³)',
-                    data: dataGrafico,
-                    backgroundColor: 'rgba(74, 144, 226, 0.5)',
-                    borderColor: 'rgba(74, 144, 226, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: { scales: { y: { beginAtZero: true } }, responsive: true, plugins: { legend: { display: false } } }
-        });
 
         if (registros.length === 0) {
             registrosBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
