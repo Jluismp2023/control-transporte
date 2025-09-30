@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v42.0</title>
+    <title>Transporte de Materiales v43.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -169,10 +169,6 @@
         document.getElementById('tab-admin').innerHTML = `<div class="grid-container-5"><div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div><div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div><div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div><div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div><div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div></div>`;
         document.getElementById('tab-summary').innerHTML = `
             <div class="card">
-                <h2>Resumen Gráfico por Material</h2>
-                <canvas id="graficoMateriales"></canvas>
-            </div>
-            <div class="card">
                 <h2>🔎 Filtrar e Imprimir</h2>
                 <div class="filter-form">
                     <label for="filtroMes"><strong>Filtrar por Mes:</strong></label><input type="month" id="filtroMes">
@@ -200,6 +196,10 @@
                         <tfoot id="registrosTfoot"></tfoot>
                     </table>
                 </div>
+            </div>
+            <div class="card">
+                <h2>Resumen Gráfico por Material</h2>
+                <canvas id="graficoMateriales"></canvas>
             </div>`;
         document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
