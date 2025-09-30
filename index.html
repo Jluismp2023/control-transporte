@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v45.0</title>
+    <title>Transporte de Materiales v46.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -32,7 +32,25 @@
         .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
         .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
         #logo { height: 70px; margin-right: 15px; }
-        h1 { color: var(--color-primario); margin: 0; font-size: 1.8em; }
+        
+        .title-container {
+            text-align: center;
+            flex-grow: 1; 
+        }
+        .title-container h1 {
+            margin: 0;
+            font-size: 1.8em;
+            line-height: 1.2;
+            color: var(--color-primario);
+        }
+        .title-container h2 {
+            margin: 5px 0 0 0;
+            font-size: 1.2em;
+            color: var(--color-secundario);
+            font-weight: 400;
+            border: none;
+        }
+
         h2, h3 { color: var(--color-primario); text-align: center; }
         h2 { border-bottom: 2px solid #eef; padding-bottom: 10px; }
         .card { 
@@ -124,7 +142,10 @@
 <div class="main-container">
     <div class="header-container">
         <img id="logo" src="logo.png" alt="Logo de la Empresa">
-        <h1>OBRAS EQUIPOS Y CONSTRUCCIONES OBRECO CIA LTDA</h1>
+        <div class="title-container">
+            <h1>OBRAS EQUIPOS Y CONSTRUCCIONES<br>OBRECO CIA LTDA</h1>
+            <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
+        </div>
         <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
     </div>
 
