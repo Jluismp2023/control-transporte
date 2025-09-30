@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v44.0</title>
+    <title>Transporte de Materiales v45.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@
         ul { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
         li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
         li .actions { display: flex; gap: 5px; }
-        input, select { padding: 12px; border: 1px solid var(--color-borde); border-radius: 6px; font-size: 16px; background-color: var(--color-blanco); }
+        input, select, textarea { padding: 12px; border: 1px solid var(--color-borde); border-radius: 6px; font-size: 16px; background-color: var(--color-blanco); font-family: inherit; }
         button { padding: 14px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s, opacity 0.3s; }
         button:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-primary { background-color: var(--color-primario); color: var(--color-blanco); }
@@ -169,7 +169,7 @@
     });
 
     const cargarContenidoHTML = () => {
-        document.getElementById('tab-registro').innerHTML = `<div class="card"><h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2><form id="transporteForm"><input type="hidden" id="indiceEdicion"><select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select><select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select><select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select><input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required><input type="date" id="fecha" required><select id="selectCantera" required><option value="">Seleccionar Cantera</option></select><select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select><input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required><div class="form-buttons"><button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button><button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button></div></form></div>`;
+        document.getElementById('tab-registro').innerHTML = `<div class="card"><h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2><form id="transporteForm"><input type="hidden" id="indiceEdicion"><select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select><select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select><select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select><input type="number" id="volumen" placeholder="Volumen (se autocompleta)" step="0.01" readonly required><input type="date" id="fecha" required><select id="selectCantera" required><option value="">Seleccionar Cantera</option></select><select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select><input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required><textarea id="observaciones" placeholder="Observaciones (opcional)" rows="3"></textarea><div class="form-buttons"><button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button><button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button></div></form></div>`;
         document.getElementById('tab-admin').innerHTML = `<div class="grid-container-5"><div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div><div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div><div class="card"><h2>💎 Materiales</h2><form id="materialForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoMaterial" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="materialesLista"></ul></div><div class="card"><h2>📍 Canteras</h2><form id="canteraForm"><input type="hidden" class="edit-id"><input type="text" id="nuevaCantera" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="canterasLista"></ul></div><div class="card"><h2>🏁 Proyectos</h2><form id="proyectoForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoProyecto" placeholder="Nombre" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="proyectosLista"></ul></div></div>`;
         document.getElementById('tab-summary').innerHTML = `
             <div class="card">
@@ -195,7 +195,7 @@
                 <h2 class="no-print">Historial de Viajes</h2>
                 <div style="overflow-x:auto;">
                     <table id="registrosTabla">
-                        <thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead>
+                        <thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Observaciones</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead>
                         <tbody id="registrosBody"></tbody>
                         <tfoot id="registrosTfoot"></tfoot>
                     </table>
@@ -213,7 +213,7 @@
         registrosTfoot.innerHTML = '';
 
         if (registros.length === 0) {
-            registrosBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
+            registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
             return;
         }
         let totalViajes = 0;
@@ -225,12 +225,12 @@
             const volumenTotal = (volumen * numViajes);
             totalViajes += numViajes;
             totalVolumen += volumenTotal;
-            fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell" style="display: flex; gap: 5px;"><button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button><button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button></td>`;
+            fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${registro.observaciones || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell" style="display: flex; gap: 5px;"><button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button><button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button></td>`;
             registrosBody.appendChild(fila);
         });
         if (registros.length > 0) {
             const pieDeTabla = document.createElement('tr');
-            pieDeTabla.innerHTML = `<td colspan="8" style="text-align: right;"><strong>TOTALES:</strong></td><td><strong>${totalViajes}</strong></td><td><strong>${totalVolumen.toFixed(2)}</strong></td><td class="action-cell"></td>`;
+            pieDeTabla.innerHTML = `<td colspan="9" style="text-align: right;"><strong>TOTALES:</strong></td><td><strong>${totalViajes}</strong></td><td><strong>${totalVolumen.toFixed(2)}</strong></td><td class="action-cell"></td>`;
             registrosTfoot.appendChild(pieDeTabla);
         }
     };
@@ -483,6 +483,7 @@
                         document.getElementById('selectCantera').value = registroAEditar.cantera;
                         document.getElementById('selectProyecto').value = registroAEditar.proyecto;
                         document.getElementById('numViajes').value = registroAEditar.numViajes;
+                        document.getElementById('observaciones').value = registroAEditar.observaciones || '';
                     }, 100);
                     btnSubmitViaje.textContent = 'Guardar Cambios';
                     btnSubmitViaje.classList.replace('btn-primary', 'btn-success');
@@ -508,7 +509,8 @@
                     volumen: volumenInput.value,
                     numViajes: document.getElementById('numViajes').value,
                     cantera: document.getElementById('selectCantera').value,
-                    proyecto: document.getElementById('selectProyecto').value
+                    proyecto: document.getElementById('selectProyecto').value,
+                    observaciones: document.getElementById('observaciones').value
                 };
                 if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha) {
                     alert('Por favor, complete todos los campos requeridos.');
@@ -532,7 +534,7 @@
         });
         
         await administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['selectNombreAdmin'], 'Nombre de Chofer');
-        await administrarListaSimple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
+        await administrarListaS-imple('materiales', 'materialForm', 'nuevoMaterial', 'materialesLista', ['selectMaterial', 'filtroMaterial'], 'Material');
         await administrarListaSimple('canteras', 'canteraForm', 'nuevaCantera', 'canterasLista', ['selectCantera', 'filtroCantera'], 'Cantera');
         await administrarListaSimple('proyectos', 'proyectoForm', 'nuevoProyecto', 'proyectosLista', ['selectProyecto', 'filtroProyecto'], 'Proyecto');
         await administrarChoferesVehiculos();
