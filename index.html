@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v43.0</title>
+    <title>Transporte de Materiales v44.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -77,7 +77,7 @@
         #signature-section { display: none; }
         
         @media print {
-            body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; }
+            body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; display: block !important; }
             @page {
                 size: A4 landscape; margin: 1.5cm;
                 @bottom-center { content: "Página " counter(page); font-size: 9pt; color: #666; }
@@ -95,7 +95,12 @@
                 border-bottom: 2px solid #aed6f1;
             }
             .no-print { display: none; }
-            .header-container, .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form), .action-cell, #graficoMateriales { display: none; }
+            .header-container, .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
+                display: none; 
+            }
+            .action-cell {
+                display: none;
+            }
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
             table { border-collapse: collapse; width: 100%; }
