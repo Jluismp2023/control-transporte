@@ -72,6 +72,7 @@
         tfoot td { font-weight: bold; background-color: #f2f7ff; }
         #registrosBody tr:nth-child(even) { background-color: var(--color-fondo); }
         #registrosBody tr:hover { background-color: #E9ECEF; }
+        #registrosBody .action-cell { display: flex; gap: 5px; } /* Estilo para los botones en la tabla */
         .admin-container { display: flex; gap: 20px; }
         .admin-sidebar { flex: 0 0 200px; display: flex; flex-direction: column; gap: 10px; }
         .admin-sidebar button { width: 100%; text-align: left; padding: 15px; background-color: #eee; color: var(--color-texto); }
@@ -111,23 +112,12 @@
             tfoot td:first-child { text-align: right; }
             
             #signature-section {
-                display: flex;
-                justify-content: center;
-                margin-top: 80px;
+                display: flex; justify-content: center; margin-top: 80px;
             }
-            .signature-box {
-                text-align: center;
-                width: 350px;
-            }
-            .signature-box p {
-                margin: 4px 0;
-                font-size: 11pt;
-            }
+            .signature-box { text-align: center; width: 350px; }
+            .signature-box p { margin: 4px 0; font-size: 11pt; }
             .signature-line {
-                border-top: 1px solid #333;
-                width: 80%;
-                margin: 40px auto 8px auto;
-                padding-top: 5px;
+                border-top: 1px solid #333; width: 80%; margin: 40px auto 8px auto; padding-top: 5px;
             }
         }
     </style>
@@ -258,7 +248,7 @@
             const volumenTotal = (volumen * numViajes);
             totalViajes += numViajes;
             totalVolumen += volumenTotal;
-            fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${registro.observaciones || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell" style="display: flex; gap: 5px;"><button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button><button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button></td>`;
+            fila.innerHTML = `<td>${index + 1}</td><td>${registro.fecha}</td><td>${registro.nombres}</td><td>${registro.placa}</td><td>${registro.material || ''}</td><td>${registro.cantera || ''}</td><td>${registro.proyecto || ''}</td><td>${registro.observaciones || ''}</td><td>${volumen.toFixed(2)}</td><td>${numViajes}</td><td><b>${volumenTotal.toFixed(2)}</b></td><td class="action-cell"><button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button><button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button></td>`;
             registrosBody.appendChild(fila);
         });
         if (registros.length > 0) {
