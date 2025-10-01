@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v47.0</title>
+    <title>Transporte de Materiales v49.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --color-primario: #4A90E2;
@@ -98,17 +99,11 @@
             .no-print { display: none; }
 
             .header-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                border-bottom: 2px solid #ddd;
-                padding-bottom: 15px;
-                margin-bottom: 20px;
+                display: flex; flex-direction: column; align-items: center;
+                border-bottom: 2px solid #ddd; padding-bottom: 15px; margin-bottom: 20px;
             }
 
-            .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
-                display: none; 
-            }
+            .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { display: none; }
             .action-cell { display: none; }
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
@@ -208,7 +203,7 @@
                     <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                     <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
                     <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
-                    <button id="btnExportarCSV" class="btn-success">📊 Exportar a CSV</button>
+                    <button id="btnExportarExcel" class="btn-success">📄 Exportar a Excel</button>
                 </div>
             </div>
             <div class="card">
@@ -445,41 +440,22 @@
         }));
         
         document.getElementById('btnPrint').addEventListener('click', () => window.print());
-        document.getElementById('btnExportarCSV').addEventListener('click', () => {
+        
+        document.getElementById('btnExportarExcel').addEventListener('click', () => {
             if (registrosFiltrados.length === 0) {
                 alert("No hay datos para exportar. Por favor, realiza una búsqueda primero.");
                 return;
             }
-
-            const headers = ["Item", "Fecha", "Nombres", "Placa", "Material", "Cantera", "Proyecto", "Observaciones", "Volumen", "# Viajes", "Vol. Total"];
-            const csvRows = [headers.join(',')];
-
-            registrosFiltrados.forEach((registro, index) => {
-                const vol = parseFloat(registro.volumen) || 0;
-                const viajes = parseInt(registro.numViajes) || 0;
-                const volTotal = (vol * viajes).toFixed(2);
-                
-                const values = [
-                    index + 1,
-                    registro.fecha, `"${registro.nombres}"`, `"${registro.placa}"`, `"${registro.material}"`,
-                    `"${registro.cantera}"`, `"${registro.proyecto}"`, `"${(registro.observaciones || '').replace(/"/g, '""')}"`,
-                    vol.toFixed(2), viajes, volTotal
-                ];
-                csvRows.push(values.join(','));
-            });
-
-            const csvString = csvRows.join('\n');
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", `reporte_transporte_${new Date().toISOString().slice(0,10)}.csv`);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
+            const tabla = document.getElementById('registrosTabla');
+            const hojaDeCalculo = XLSX.utils.table_to_sheet(tabla, {raw: true});
+            hojaDeCalculo['!cols'] = [
+                { wch: 5 }, { wch: 12 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, 
+                { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }
+            ];
+            const libro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(libro, hojaDeCalculo, 'Reporte');
+            const nombreArchivo = `Reporte_Transporte_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(libro, nombreArchivo);
         });
 
         document.getElementById('filtroMes').addEventListener('change', () => {
