@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v48.0</title>
+    <title>Transporte de Materiales v47.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -96,7 +96,19 @@
                 padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #aed6f1;
             }
             .no-print { display: none; }
-            .header-container, .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { display: none; }
+
+            .header-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                border-bottom: 2px solid #ddd;
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+            }
+
+            .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
+                display: none; 
+            }
             .action-cell { display: none; }
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
@@ -216,7 +228,7 @@
     let registrosFiltrados = [];
 
     const renderizarRegistros = (registros) => {
-        registrosFiltrados = registros; // Guardar los registros actuales para la exportación
+        registrosFiltrados = registros; 
 
         const registrosBody = document.getElementById('registrosBody');
         const registrosTfoot = document.getElementById('registrosTfoot');
@@ -315,7 +327,6 @@
         const nuevaPlacaEl = document.getElementById('nuevaPlaca');
         const nuevoVolumenEl = document.getElementById('nuevoVolumen');
 
-        // Poblar el select de nombres de choferes
         const qNombres = query(collection(db, "nombresDeChoferes"));
         const snapshotNombres = await getDocs(qNombres);
         selectNombreEl.innerHTML = '<option value="">Seleccionar Chofer</option>';
@@ -450,16 +461,9 @@
                 
                 const values = [
                     index + 1,
-                    registro.fecha,
-                    registro.nombres,
-                    registro.placa,
-                    registro.material,
-                    registro.cantera,
-                    registro.proyecto,
-                    `"${(registro.observaciones || '').replace(/"/g, '""')}"`, // Escapar comillas dobles
-                    vol.toFixed(2),
-                    viajes,
-                    volTotal
+                    registro.fecha, `"${registro.nombres}"`, `"${registro.placa}"`, `"${registro.material}"`,
+                    `"${registro.cantera}"`, `"${registro.proyecto}"`, `"${(registro.observaciones || '').replace(/"/g, '""')}"`,
+                    vol.toFixed(2), viajes, volTotal
                 ];
                 csvRows.push(values.join(','));
             });
