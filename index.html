@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v48.0</title>
+    <title>Transporte de Materiales v48.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -72,7 +72,7 @@
         tfoot td { font-weight: bold; background-color: #f2f7ff; }
         #registrosBody tr:nth-child(even) { background-color: var(--color-fondo); }
         #registrosBody tr:hover { background-color: #E9ECEF; }
-        #registrosBody .action-cell { display: flex; gap: 5px; } /* Estilo para los botones en la tabla */
+        #registrosBody .action-cell { display: flex; gap: 5px; }
         .admin-container { display: flex; gap: 20px; }
         .admin-sidebar { flex: 0 0 200px; display: flex; flex-direction: column; gap: 10px; }
         .admin-sidebar button { width: 100%; text-align: left; padding: 15px; background-color: #eee; color: var(--color-texto); }
@@ -102,7 +102,10 @@
             }
 
             .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { display: none; }
-            .action-cell { display: none; }
+            
+            /* --- ESTA ES LA CORRECCIÓN DEFINITIVA --- */
+            .action-cell { display: none !important; }
+            
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
             table { border-collapse: collapse; width: 100%; }
