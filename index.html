@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v47.0</title>
+    <title>Transporte de Materiales v48.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -71,38 +71,17 @@
         tfoot td { font-weight: bold; background-color: #f2f7ff; }
         #registrosBody tr:nth-child(even) { background-color: var(--color-fondo); }
         #registrosBody tr:hover { background-color: #E9ECEF; }
+        .admin-container { display: flex; gap: 20px; }
+        .admin-sidebar { flex: 0 0 200px; display: flex; flex-direction: column; gap: 10px; }
+        .admin-sidebar button { width: 100%; text-align: left; padding: 15px; background-color: #eee; color: var(--color-texto); }
+        .admin-sidebar button.active { background-color: var(--color-primario); color: var(--color-blanco); }
+        .admin-content { flex-grow: 1; }
         .form-buttons { display: flex; gap: 10px; }
         .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
         .filter-form label { font-weight: bold; }
         #btnCancelarEdicion { display: none; }
         .print-only { display: none; }
         #signature-section { display: none; }
-
-        /* --- ESTILOS PARA LA NUEVA PESTAÑA DE ADMINISTRACIÓN --- */
-        .admin-container {
-            display: flex;
-            gap: 20px;
-        }
-        .admin-sidebar {
-            flex: 0 0 200px; /* Ancho fijo de 200px */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .admin-sidebar button {
-            width: 100%;
-            text-align: left;
-            padding: 15px;
-            background-color: #eee;
-            color: var(--color-texto);
-        }
-        .admin-sidebar button.active {
-            background-color: var(--color-primario);
-            color: var(--color-blanco);
-        }
-        .admin-content {
-            flex-grow: 1;
-        }
         
         @media print {
             body { background-color: white; font-size: 9pt; font-family: Arial, Helvetica, sans-serif; display: block !important; }
@@ -216,7 +195,8 @@
                     <select id="filtroProyecto"><option value="">-- Todos --</option></select>
                     <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                     <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
-                    <button id="btnPrint" class="btn-primary">🖨️ Imprimir Reporte</button>
+                    <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
+                    <button id="btnExportarCSV" class="btn-success">📊 Exportar a CSV</button>
                 </div>
             </div>
             <div class="card">
@@ -233,7 +213,11 @@
         document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
     
+    let registrosFiltrados = [];
+
     const renderizarRegistros = (registros) => {
+        registrosFiltrados = registros; // Guardar los registros actuales para la exportación
+
         const registrosBody = document.getElementById('registrosBody');
         const registrosTfoot = document.getElementById('registrosTfoot');
 
@@ -334,6 +318,7 @@
         // Poblar el select de nombres de choferes
         const qNombres = query(collection(db, "nombresDeChoferes"));
         const snapshotNombres = await getDocs(qNombres);
+        selectNombreEl.innerHTML = '<option value="">Seleccionar Chofer</option>';
         snapshotNombres.forEach(doc => selectNombreEl.add(new Option(doc.data().nombre, doc.data().nombre)));
 
         const resetForm = () => { editIdInput.value = ''; form.reset(); submitBtn.textContent = 'Asignar'; submitBtn.classList.remove('btn-success'); };
@@ -397,7 +382,6 @@
         const formViajeTitulo = document.getElementById('formViajeTitulo');
         const btnSubmitViaje = document.getElementById('btnSubmitViaje');
         
-        // --- LÓGICA PARA LA NUEVA PESTAÑA DE ADMINISTRACIÓN ---
         const adminContent = document.getElementById('admin-content');
         const adminSidebarButtons = document.querySelectorAll('.admin-sidebar button');
 
@@ -426,24 +410,13 @@
 
         const showAdminSection = (sectionName) => {
             if (!adminSections[sectionName]) return;
-            
-            adminSidebarButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.section === sectionName);
-            });
-            
+            adminSidebarButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.section === sectionName));
             adminContent.innerHTML = adminSections[sectionName].html;
             adminSections[sectionName].loader();
         };
 
-        adminSidebarButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                showAdminSection(button.dataset.section);
-            });
-        });
-        
-        // Mostrar la primera sección por defecto
+        adminSidebarButtons.forEach(button => button.addEventListener('click', () => showAdminSection(button.dataset.section)));
         showAdminSection('choferes');
-
 
         const cargarRegistros = async (filtros = []) => {
             let q = query(collection(db, "registros"));
@@ -461,7 +434,50 @@
         }));
         
         document.getElementById('btnPrint').addEventListener('click', () => window.print());
-        
+        document.getElementById('btnExportarCSV').addEventListener('click', () => {
+            if (registrosFiltrados.length === 0) {
+                alert("No hay datos para exportar. Por favor, realiza una búsqueda primero.");
+                return;
+            }
+
+            const headers = ["Item", "Fecha", "Nombres", "Placa", "Material", "Cantera", "Proyecto", "Observaciones", "Volumen", "# Viajes", "Vol. Total"];
+            const csvRows = [headers.join(',')];
+
+            registrosFiltrados.forEach((registro, index) => {
+                const vol = parseFloat(registro.volumen) || 0;
+                const viajes = parseInt(registro.numViajes) || 0;
+                const volTotal = (vol * viajes).toFixed(2);
+                
+                const values = [
+                    index + 1,
+                    registro.fecha,
+                    registro.nombres,
+                    registro.placa,
+                    registro.material,
+                    registro.cantera,
+                    registro.proyecto,
+                    `"${(registro.observaciones || '').replace(/"/g, '""')}"`, // Escapar comillas dobles
+                    vol.toFixed(2),
+                    viajes,
+                    volTotal
+                ];
+                csvRows.push(values.join(','));
+            });
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `reporte_transporte_${new Date().toISOString().slice(0,10)}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+
         document.getElementById('filtroMes').addEventListener('change', () => {
             const mesSeleccionado = document.getElementById('filtroMes').value;
             if (!mesSeleccionado) {
@@ -507,7 +523,6 @@
             selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
             volumenInput.value = '';
             
-            // Poblar lista de vehículos para el chofer seleccionado
             const q = query(collection(db, "choferesVehiculos"), where("nombre", "==", nombreSeleccionado));
             const snapshot = await getDocs(q);
             const vehiculosDelChofer = [];
@@ -525,12 +540,10 @@
             }
         });
         
-        // Cargar nombres de choferes en el select principal
         const qNombres = query(collection(db, "nombresDeChoferes"));
         const snapshotNombres = await getDocs(qNombres);
         snapshotNombres.forEach(doc => selectNombres.add(new Option(doc.data().nombre, doc.data().nombre)));
         
-        // Cargar materiales, canteras y proyectos en sus selects
         const poblarSelects = async (collectionName, selectId) => {
             const selectEl = document.getElementById(selectId);
             const q = query(collection(db, collectionName));
@@ -588,7 +601,7 @@
                         document.getElementById('selectProyecto').value = registroAEditar.proyecto;
                         document.getElementById('numViajes').value = registroAEditar.numViajes;
                         document.getElementById('observaciones').value = registroAEditar.observaciones || '';
-                    }, 200); // Aumentado el tiempo para dar chance a que cargue la lista de placas
+                    }, 200);
                     btnSubmitViaje.textContent = 'Guardar Cambios';
                     btnSubmitViaje.classList.replace('btn-primary', 'btn-success');
                     document.getElementById('btnCancelarEdicion').style.display = 'block';
