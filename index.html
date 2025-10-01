@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v49.0</title>
+    <title>Transporte de Materiales v48.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -92,10 +92,7 @@
             }
             .main-container { margin: 0; padding: 0; }
             .card { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; page-break-inside: avoid; }
-            .print-only {
-                display: block; text-align: center; font-size: 18pt; font-weight: bold; color: #003366;
-                padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #aed6f1;
-            }
+            .print-only { display: none; }
             .no-print { display: none; }
 
             .header-container {
@@ -112,10 +109,26 @@
             th { background-color: #EAEAEA !important; font-weight: bold; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             tfoot td { background-color: #E0E0E0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: center; }
             tfoot td:first-child { text-align: right; }
-            #signature-section { display: flex; justify-content: center; margin-top: 60px; }
-            .signature-box { text-align: center; width: 300px; }
-            .signature-box p { margin: 2px 0; }
-            .signature-line { margin-bottom: 8px; font-weight: bold; }
+            
+            #signature-section {
+                display: flex;
+                justify-content: center;
+                margin-top: 80px;
+            }
+            .signature-box {
+                text-align: center;
+                width: 350px;
+            }
+            .signature-box p {
+                margin: 4px 0;
+                font-size: 11pt;
+            }
+            .signature-line {
+                border-top: 1px solid #333;
+                width: 80%;
+                margin: 40px auto 8px auto;
+                padding-top: 5px;
+            }
         }
     </style>
 </head>
@@ -217,7 +230,7 @@
                     </table>
                 </div>
             </div>`;
-        document.getElementById('signature-section').innerHTML = `<div class="signature-box"><p class="signature-line">_________________________</p><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
+        document.getElementById('signature-section').innerHTML = `<div class="signature-box"><div class="signature-line"></div><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
     };
     
     let registrosFiltrados = [];
