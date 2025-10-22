@@ -94,6 +94,7 @@
             grid-column: 1 / -1;
         }
 
+        /* --- SECCIÓN DE IMPRESIÓN TOTALMENTE MODIFICADA --- */
         @media print {
             body { 
                 background-color: white; 
@@ -101,9 +102,19 @@
                 font-family: Arial, Helvetica, sans-serif; 
                 display: block !important; 
             }
+            
             @page {
                 size: A4 landscape; 
                 margin: 1.5cm;
+                
+                /* SOLUCIÓN: Encabezado en todas las hojas */
+                @top-center {
+                    content: "OBRAS EQUIPOS Y CONSTRUCCIONES OBRECO CIA LTDA";
+                    font-size: 10pt;
+                    font-weight: bold;
+                    color: #333;
+                    margin-top: 0.5cm;
+                }
                 @bottom-center { 
                     content: "Página " counter(page); 
                     font-size: 9pt; 
@@ -116,65 +127,94 @@
                 box-shadow: none; 
                 border: none; 
                 padding: 0; 
-                margin-bottom: 15px; /* Reducido */
+                margin-bottom: 10px;
                 page-break-inside: avoid; 
             }
             
             .print-only { 
                 display: block; 
                 text-align: center;
-                font-size: 1.2em;
+                font-size: 1.1em;
                 font-weight: bold;
                 margin-bottom: 10px;
             }
             
             .no-print { display: none; }
             
-            /* --- MODIFICACIÓN: Encabezado en fila --- */
+            /* SOLUCIÓN: Ocultar encabezado (logo) para evitar salto de página */
             .header-container {
-                display: flex; 
-                flex-direction: row; /* <-- CAMBIADO: Pone logo y título en fila */
-                align-items: center;  /* <-- CAMBIADO: Centra verticalmente */
-                border-bottom: 2px solid #ddd; 
-                padding-bottom: 10px;
-                margin-bottom: 15px;
-                page-break-inside: avoid;
+                display: none; 
             }
             
             .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
                 display: none; 
             }
-            
             .action-cell { display: none !important; }
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
             
-            table { border-collapse: collapse; width: 100%; }
+            table { 
+                border-collapse: collapse; 
+                width: 100%; 
+                table-layout: fixed; /* Clave para anchos de columna */
+            }
+            
+            /* SOLUCIÓN: Repetir encabezado de tabla */
+            table thead { 
+                display: table-header-group; 
+            }
+
             th, td { 
                 border: 1px solid #333 !important; 
-                padding: 6px; 
+                padding: 5px; /* Reducido para más espacio */
                 text-align: left; 
                 vertical-align: middle; 
+                word-break: break-word;
             }
+
+            /* SOLUCIÓN: Colores en la tabla */
             th { 
-                background-color: #EAEAEA !important; 
+                background-color: #f2f7ff !important; 
                 font-weight: bold; 
                 text-align: center; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact; 
             }
+            
+            #registrosBody tr:nth-child(even) {
+                background-color: #F8F9FA !important; /* Color "zebra" */
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+
             tfoot td { 
-                background-color: #E0E0E0 !important; 
+                background-color: #f2f7ff !important; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact; 
                 text-align: center; 
+                font-weight: bold;
             }
             tfoot td:first-child { text-align: right; }
+            
+            /* --- SOLUCIÓN: Ancho de Columnas --- */
+            th.action-cell, td.action-cell { display: none !important; }
+
+            th:nth-child(1), td:nth-child(1) { width: 3%; text-align: center; } /* Item */
+            th:nth-child(2), td:nth-child(2) { width: 8%; white-space: nowrap; } /* Fecha */
+            th:nth-child(3), td:nth-child(3) { width: 14%; } /* Nombres */
+            th:nth-child(4), td:nth-child(4) { width: 8%; white-space: nowrap; } /* Placa */
+            th:nth-child(5), td:nth-child(5) { width: 10%; } /* Material */
+            th:nth-child(6), td:nth-child(6) { width: 10%; } /* Cantera */
+            th:nth-child(7), td:nth-child(7) { width: 15%; } /* Proyecto */
+            th:nth-child(8), td:nth-child(8) { width: 20%; } /* Observaciones */
+            th:nth-child(9), td:nth-child(9) { width: 4%; text-align: center; } /* Volumen */
+            th:nth-child(10), td:nth-child(10) { width: 4%; text-align: center; } /* # Viajes */
+            th:nth-child(11), td:nth-child(11) { width: 4%; text-align: center; font-weight: bold; } /* Vol. Total */
             
             #signature-section {
                 display: flex; 
                 justify-content: center; 
-                margin-top: 50px;
+                margin-top: 40px; /* Reducido */
                 page-break-inside: avoid;
             }
             .signature-box { text-align: center; width: 350px; }
@@ -221,7 +261,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyDtDX8xK1m1VxjfRMFsDZXoAH36l8Izyz8",
         authDomain: "control-transporte-c4f61.firebaseapp.com",
-        projectId: "control-transporte-c4f61",
+        projectId: "control-transtransporte-c4f61",
         storageBucket: "control-transporte-c4f61.appspot.com",
         messagingSenderId: "447956658904",
         appId: "1:447956658904:web:81e9b40fb55107f93ec5ad"
@@ -538,14 +578,21 @@
                 alert("No hay datos para exportar. Por favor, realiza una búsqueda primero.");
                 return;
             }
-            const tabla = document.getElementById('registrosTabla');
-            const hojaDeCalculo = XLSX.utils.table_to_sheet(tabla, {raw: true});
+            
+            // Clonamos la tabla para no modificar la original
+            const tablaOriginal = document.getElementById('registrosTabla');
+            const tablaClonada = tablaOriginal.cloneNode(true);
+            
+            // Quitamos la columna de "Acciones" de la tabla clonada
+            Array.from(tablaClonada.querySelectorAll('.action-cell')).forEach(celda => celda.remove());
+
+            const hojaDeCalculo = XLSX.utils.table_to_sheet(tablaClonada, {raw: true});
             hojaDeCalculo['!cols'] = [
                 { wch: 5 }, { wch: 12 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, 
                 { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 }
             ];
             const libro = XLSX.utils.book_new();
-            XSXLX.utils.book_append_sheet(libro, hojaDeCalculo, 'Reporte');
+            XLSX.utils.book_append_sheet(libro, hojaDeCalculo, 'Reporte');
             const nombreArchivo = `Reporte_Transporte_${new Date().toISOString().slice(0,10)}.xlsx`;
             XLSX.writeFile(libro, nombreArchivo);
         });
