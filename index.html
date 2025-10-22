@@ -138,6 +138,19 @@
                 margin-bottom: 10px;
             }
             
+            /* --- CAMBIO 2: Estilo para el nuevo resumen de filtros --- */
+            #print-filter-summary {
+                display: block; /* Asegura que se muestre al imprimir */
+                font-size: 9pt;
+                font-weight: normal;
+                font-style: italic;
+                color: #333;
+                text-align: left;
+                margin: 5px 0 15px 0;
+                border-bottom: 1px dashed #999;
+                padding-bottom: 10px;
+            }
+            
             .no-print { display: none; }
             .header-container { display: none; }
             .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
@@ -190,20 +203,19 @@
                 text-align: right; 
             }
             
-            /* --- Ancho de Columnas (Corregido) --- */
             th.action-cell, td.action-cell { display: none !important; }
 
             thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
             thead th:nth-child(2), tbody td:nth-child(2) { width: 8%; } /* Fecha */
-            thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; } /* Nombres (Reducido) */
-            thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; } /* Placa (Aumentado) */
+            thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; } /* Nombres */
+            thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; } /* Placa */
             thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; } /* Material */
             thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; } /* Cantera */
             thead th:nth-child(7), tbody td:nth-child(7) { width: 15%; } /* Proyecto */
             thead th:nth-child(8), tbody td:nth-child(8) { width: 20%; } /* Observaciones */
             thead th:nth-child(9), tbody td:nth-child(9) { width: 4%; text-align: center; } /* Volumen */
             thead th:nth-child(10), tbody td:nth-child(10) { width: 4%; text-align: center; } /* # Viajes */
-            thead th:nth-child(11), tbody td:nth-child(11) { width: 6%; text-align: center; font-weight: bold; } /* Vol. Total (Aumentado) */
+            thead th:nth-child(11), tbody td:nth-child(11) { width: 6%; text-align: center; font-weight: bold; } /* Vol. Total */
             
             #signature-section {
                 display: flex; 
@@ -332,6 +344,7 @@
             </div>
             <div class="card">
                 <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
+                <div id="print-filter-summary" class="print-only"></div> 
                 <h2 class="no-print">Historial de Viajes</h2>
                 <div style="overflow-x:auto;">
                     <table id="registrosTabla">
@@ -565,7 +578,54 @@
             document.getElementById(tab.dataset.tab).classList.add('active');
         }));
         
-        document.getElementById('btnPrint').addEventListener('click', () => window.print());
+        // --- CAMBIO 3: Función de impresión actualizada ---
+        document.getElementById('btnPrint').addEventListener('click', () => {
+            // 1. Obtener los valores de los filtros
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const material = document.getElementById('filtroMaterial').value;
+            const cantera = document.getElementById('filtroCantera').value;
+            const proyecto = document.getElementById('filtroProyecto').value;
+            const filtroMes = document.getElementById('filtroMes').value;
+
+            // 2. Construir el HTML del resumen
+            let filtrosUsados = [];
+
+            // Lógica para fechas
+            if (filtroMes) {
+                const [year, month] = filtroMes.split('-');
+                filtrosUsados.push(`<strong>Mes:</strong> ${month}/${year}`);
+            } else if (fechaInicio || fechaFin) {
+                if (fechaInicio && fechaFin) {
+                    filtrosUsados.push(`<strong>Fechas:</strong> ${fechaInicio} al ${fechaFin}`);
+                } else if (fechaInicio) {
+                    filtrosUsados.push(`<strong>Desde:</strong> ${fechaInicio}`);
+                } else if (fechaFin) {
+                    filtrosUsados.push(`<strong>Hasta:</strong> ${fechaFin}`);
+                }
+            }
+
+            if (material) {
+                filtrosUsados.push(`<strong>Material:</strong> ${material}`);
+            }
+            if (cantera) {
+                filtrosUsados.push(`<strong>Cantera:</strong> ${cantera}`);
+            }
+            if (proyecto) {
+                filtrosUsados.push(`<strong>Proyecto:</strong> ${proyecto}`);
+            }
+
+            // 3. Inyectar el HTML
+            const resumenContainer = document.getElementById('print-filter-summary');
+            if (filtrosUsados.length > 0) {
+                resumenContainer.innerHTML = '<i>Filtros Aplicados: &nbsp; ' + filtrosUsados.join(' &nbsp; | &nbsp; ') + '</i>';
+            } else {
+                resumenContainer.innerHTML = '<i>Mostrando todos los registros (sin filtros)</i>';
+            }
+
+            // 4. Llamar a la impresión
+            window.print();
+        });
         
         document.getElementById('btnExportarExcel').addEventListener('click', () => {
             if (registrosFiltrados.length === 0) {
