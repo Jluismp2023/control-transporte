@@ -162,7 +162,7 @@
                 padding: 5px;
                 text-align: left; 
                 vertical-align: middle; 
-                word-break: break-word;
+                word-break: break-word; /* Esta es la regla clave que permite el salto de línea */
             }
 
             th { 
@@ -186,20 +186,17 @@
                 text-align: center; 
                 font-weight: bold;
             }
-            /* Esta regla alinea "TOTALES:" a la derecha */
             tfoot td:first-child { 
                 text-align: right; 
             }
             
-            /* --- CORRECCIÓN: Ancho de Columnas --- */
-            /* Se agregaron "thead" y "tbody" para que las reglas no afecten a "tfoot" */
-            
+            /* --- Ancho de Columnas --- */
             th.action-cell, td.action-cell { display: none !important; }
 
             thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
-            thead th:nth-child(2), tbody td:nth-child(2) { width: 8%; white-space: nowrap; } /* Fecha */
+            thead th:nth-child(2), tbody td:nth-child(2) { width: 8%; } /* Fecha - CORREGIDO */
             thead th:nth-child(3), tbody td:nth-child(3) { width: 14%; } /* Nombres */
-            thead th:nth-child(4), tbody td:nth-child(4) { width: 8%; white-space: nowrap; } /* Placa */
+            thead th:nth-child(4), tbody td:nth-child(4) { width: 8%; } /* Placa - CORREGIDO */
             thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; } /* Material */
             thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; } /* Cantera */
             thead th:nth-child(7), tbody td:nth-child(7) { width: 15%; } /* Proyecto */
