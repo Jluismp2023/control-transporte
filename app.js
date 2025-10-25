@@ -51,7 +51,7 @@ const cargarContenidoHTML = () => {
     // HTML para el Panel de Inicio
     document.getElementById('tab-inicio').innerHTML = `
         
-        <!-- Contenedor de Estadísticas (KPIs) - MODIFICADO -->
+        <!-- Contenedor de Estadísticas (KPIs) -->
         <div class="kpi-container">
             <div class="kpi-card">
                 <h3>Volumen de Hoy (m³)</h3>
@@ -69,7 +69,6 @@ const cargarContenidoHTML = () => {
 
         <!-- Contenedor de Accesos Directos -->
         <div class="card">
-            <!-- TÍTULO "ACCESOS DIRECTOS" ELIMINADO -->
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
                     <span>🚚</span> Nuevo Registro
@@ -128,7 +127,6 @@ const cargarContenidoHTML = () => {
     document.getElementById('tab-summary').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         
-        <!-- DIV DE FILTROS AHORA TIENE CLASE "no-print" -->
         <div class="card no-print"> 
             <h2>🔎 Filtrar e Imprimir</h2>
             <div class="filter-form">
@@ -150,10 +148,9 @@ const cargarContenidoHTML = () => {
                 <button id="btnExportarExcel" class="btn-success">📄 Exportar a Excel</button>
             </div>
         </div>
-        <!-- FIN DEL DIV DE FILTROS -->
 
-        <div class="card"> {/* Card de la tabla */}
-            {/* Título y clase añadida para estilizar */}
+        <div class="card"> 
+            {/* COMENTARIOS ELIMINADOS DE AQUÍ */}
             <div class="print-only report-title">TRANSPORTE DE MATERIALES PETREOS</div> 
             <div id="print-filter-summary" class="print-only"></div> 
             <h2 class="no-print">Historial de Viajes</h2>
