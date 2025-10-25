@@ -37,7 +37,13 @@ h2 { border-bottom: 2px solid #eef; padding-bottom: 10px; }
     margin-bottom: 30px; 
 }
 
-/* ESTILOS DE PESTAÑAS ELIMINADOS */
+/* RE-AÑADIDO: Estilos de Pestañas */
+.tabs { display: flex; border-bottom: 2px solid var(--color-borde); margin-bottom: 20px; }
+.tab-button { padding: 10px 20px; cursor: pointer; background-color: #eee; border: 1px solid var(--color-borde); border-bottom: none; border-radius: 8px 8px 0 0; margin-right: 5px; font-weight: bold; }
+.tab-button.active { background-color: var(--color-primario); color: var(--color-blanco); border-color: var(--color-primario); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 form { display: flex; flex-direction: column; gap: 15px; }
 ul { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
@@ -148,14 +154,17 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     .no-print { display: none; }
     .header-container { display: none; }
     
-    /* ESTILOS DE PESTAÑAS ELIMINADOS DE AQUÍ */
-    form, .list-action-btn, .card:has(.filter-form) { 
+    /* RE-AÑADIDO: Ocultar pestañas y contenido no activo */
+    .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
         display: none; 
     }
     
     .action-cell { display: none !important; }
     #btnLogout { display: none; }
     
+    /* RE-AÑADIDO: Asegurar que el contenido activo se muestre */
+    .tab-content.active { display: block !important; }
+
     table { 
         border-collapse: collapse; 
         width: 100%; 

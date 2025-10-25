@@ -317,7 +317,13 @@ const inicializarApp = async () => {
         renderizarRegistros(registrosData);
     };
     
-    // BLOQUE DE CÓDIGO DE MANEJO DE PESTAÑAS ELIMINADO
+    // RE-AÑADIDO: Lógica de Pestañas
+    document.querySelectorAll('.tab-button').forEach(tab => tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(tab.dataset.tab).classList.add('active');
+    }));
 
     document.getElementById('btnPrint').addEventListener('click', () => {
         const fechaInicio = document.getElementById('fechaInicio').value;
@@ -468,6 +474,8 @@ const inicializarApp = async () => {
         volumenInput.value = selectedOption.dataset.volumen || '';
     });
 
+
+
     const cancelarEdicion = () => {
         formViajeTitulo.textContent = '🚚 Nuevo Registro de Viaje';
         indiceEdicionInput.value = '';
@@ -499,7 +507,8 @@ const inicializarApp = async () => {
             if (docSnap.exists()) {
                 const registroAEditar = docSnap.data();
                 
-                // LÍNEA DE CLIC EN PESTAÑA ELIMINADA
+                // RE-AÑADIDO: Clic en la pestaña de registro
+                document.querySelector('.tab-button[data-tab="tab-registro"]').click();
                 
                 formViajeTitulo.textContent = `✍️ Modificando Viaje`;
                 indiceEdicionInput.value = docId;
@@ -551,8 +560,7 @@ const inicializarApp = async () => {
                 formViajeError.textContent = 'Por favor, complete todos los campos requeridos.';
                 btn.disabled = false;
                 btn.textContent = originalText;
-                return; 
-                // <-- LA LÍNEA ERRÓNEA FUE ELIMINADA DE AQUÍ
+                return;
             }
             
             if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
@@ -576,3 +584,4 @@ const inicializarApp = async () => {
     
     await cargarRegistros();
 };
+

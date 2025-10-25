@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
+    <!-- CSS Externo -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,15 +24,23 @@
         <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
     </div>
 
-    <div id="tab-registro" class="no-print"></div>
-    <div id="tab-admin" class="no-print"></div>
-    
-    <div id="tab-summary"></div>
+    <!-- RE-AÑADIDO: HTML de las pestañas -->
+    <div class="tabs">
+        <button class="tab-button active" data-tab="tab-registro">Registro</button>
+        <button class="tab-button" data-tab="tab-admin">Administración</button>
+        <button class="tab-button" data-tab="tab-summary">Reportes</button>
+    </div>
+
+    <!-- RE-AÑADIDO: Clases .tab-content y .active -->
+    <div id="tab-registro" class="tab-content active"></div>
+    <div id="tab-admin" class="tab-content"></div>
+    <div id="tab-summary" class="tab-content"></div>
     
     <div id="signature-section"></div>
 
 </div>
 
+<!-- JS Externo -->
 <script type="module" src="app.js"></script>
 </body>
 </html>
