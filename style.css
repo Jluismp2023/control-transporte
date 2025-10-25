@@ -216,7 +216,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         display: block !important;
     }
 
-    /* --- ENCABEZADO DE IMPRESIÓN MODIFICADO --- */
+    /* --- ENCABEZADO DE IMPRESIÓN CORREGIDO --- */
     .print-header {
         display: flex !important; 
         align-items: center; 
@@ -225,12 +225,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         padding-bottom: 10px; 
         border-bottom: 1px solid #ccc; 
         margin-bottom: 15px; 
-        /* ELIMINADO: position: fixed y propiedades relacionadas */
-        /* ELIMINADO: background-color: white; */
-        /* ELIMINADO: padding: 10px 1.5cm; */
-        /* ELIMINADO: box-sizing: border-box; */
-        /* ELIMINADO: z-index: 10; */
-        page-break-after: avoid; /* Intentar evitar salto después del header */
+        page-break-after: avoid; 
     }
     
     .print-header img {
@@ -259,8 +254,15 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         border: none; 
     }
     
-    /* --- ELIMINADO: body::before --- */
-    
+    /* --- Estilo para el título del reporte impreso --- */
+    .report-title {
+        text-align: center !important; 
+        font-size: 14pt !important; 
+        font-weight: bold !important; 
+        margin-bottom: 10px !important; 
+        color: #333 !important; 
+    }
+
     #print-filter-summary {
         display: block;
         font-size: 9pt;
@@ -287,7 +289,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         border-collapse: collapse;
         width: 100%;
         table-layout: fixed;
-        margin-top: 0; /* Quitar margen superior si lo había */
+        margin-top: 0; 
     }
     table thead {
         display: table-header-group; /* Repeat header on each page */

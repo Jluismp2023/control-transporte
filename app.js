@@ -153,7 +153,8 @@ const cargarContenidoHTML = () => {
         <!-- FIN DEL DIV DE FILTROS -->
 
         <div class="card"> {/* Card de la tabla */}
-            <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
+            {/* Título y clase añadida para estilizar */}
+            <div class="print-only report-title">TRANSPORTE DE MATERIALES PETREOS</div> 
             <div id="print-filter-summary" class="print-only"></div> 
             <h2 class="no-print">Historial de Viajes</h2>
             <div style="overflow-x:auto;">
