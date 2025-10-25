@@ -15,7 +15,6 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// SUGERENCIA 6: Función helper para obtener la fecha de hoy
 const getTodayDate = () => new Date().toISOString().slice(0, 10);
 
 onAuthStateChanged(auth, (user) => {
@@ -257,7 +256,6 @@ const administrarChoferesVehiculos = async () => {
 const inicializarApp = async () => {
     cargarContenidoHTML();
 
-    // SUGERENCIA 6: Usar la función helper para la fecha
     document.getElementById('fecha').value = getTodayDate();
 
     document.getElementById('btnLogout').addEventListener('click', () => signOut(auth).catch((error) => console.error("Error al cerrar sesión", error)));
@@ -269,7 +267,6 @@ const inicializarApp = async () => {
     const indiceEdicionInput = document.getElementById('indiceEdicion');
     const formViajeTitulo = document.getElementById('formViajeTitulo');
     const btnSubmitViaje = document.getElementById('btnSubmitViaje');
-    // SUGERENCIA 4: Obtener el elemento del mensaje de error
     const formViajeError = document.getElementById('formViajeError');
     
     const adminContent = document.getElementById('admin-content');
@@ -309,7 +306,6 @@ const inicializarApp = async () => {
     showAdminSection('choferes');
 
     const cargarRegistros = async (filtros = []) => {
-        // SUGERENCIA 5: Mostrar indicador de carga
         const registrosBody = document.getElementById('registrosBody');
         registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Cargando registros...</td></tr>`;
         document.getElementById('registrosTfoot').innerHTML = '';
@@ -321,13 +317,8 @@ const inicializarApp = async () => {
         renderizarRegistros(registrosData);
     };
     
-    document.querySelectorAll('.tab-button').forEach(tab => tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(tab.dataset.tab).classList.add('active');
-    }));
-    
+    // BLOQUE DE CÓDIGO DE MANEJO DE PESTAÑAS ELIMINADO
+
     document.getElementById('btnPrint').addEventListener('click', () => {
         const fechaInicio = document.getElementById('fechaInicio').value;
         const fechaFin = document.getElementById('fechaFin').value;
@@ -482,7 +473,6 @@ const inicializarApp = async () => {
         indiceEdicionInput.value = '';
         transporteForm.reset();
         
-        // SUGERENCIA 6: Poner fecha de hoy al cancelar
         document.getElementById('fecha').value = getTodayDate();
         
         selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
@@ -491,7 +481,6 @@ const inicializarApp = async () => {
         btnSubmitViaje.classList.replace('btn-success', 'btn-primary');
         document.getElementById('btnCancelarEdicion').style.display = 'none';
         
-        // SUGERENCIA 4: Limpiar mensaje de error
         formViajeError.textContent = '';
     };
     document.getElementById('btnCancelarEdicion').addEventListener('click', cancelarEdicion);
@@ -509,7 +498,9 @@ const inicializarApp = async () => {
             const docSnap = await getDoc(doc(db, "registros", docId));
             if (docSnap.exists()) {
                 const registroAEditar = docSnap.data();
-                document.querySelector('.tab-button[data-tab="tab-registro"]').click();
+                
+                // LÍNEA DE CLIC EN PESTAÑA ELIMINADA
+                
                 formViajeTitulo.textContent = `✍️ Modificando Viaje`;
                 indiceEdicionInput.value = docId;
                 selectNombres.value = registroAEditar.nombres;
@@ -535,7 +526,6 @@ const inicializarApp = async () => {
     transporteForm.addEventListener('submit', async e => {
         e.preventDefault();
         
-        // SUGERENCIA 4: Limpiar error al intentar enviar
         formViajeError.textContent = '';
         
         const btn = btnSubmitViaje;
@@ -557,12 +547,12 @@ const inicializarApp = async () => {
                 observaciones: document.getElementById('observaciones').value
             };
             
-            // SUGERENCIA 4: Validación mejorada sin alert()
             if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha || !registro.volumen) {
                 formViajeError.textContent = 'Por favor, complete todos los campos requeridos.';
-                btn.disabled = false; // Reactivar el botón
-                btn.textContent = originalText; // Restaurar texto original
-                return; // Detener la ejecución
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+Two-hundred fifty dollars, Your Honor.
             }
             
             if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
