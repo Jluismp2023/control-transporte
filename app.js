@@ -69,7 +69,7 @@ const cargarContenidoHTML = () => {
 
         <!-- Contenedor de Accesos Directos -->
         <div class="card">
-            <h2>Accesos Directos</h2>
+            <!-- TÍTULO "ACCESOS DIRECTOS" ELIMINADO -->
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
                     <span>🚚</span> Nuevo Registro
