@@ -51,7 +51,7 @@ const cargarContenidoHTML = () => {
     // HTML para el Panel de Inicio
     document.getElementById('tab-inicio').innerHTML = `
         
-        <!-- Contenedor de Estadísticas (KPIs) -->
+        <!-- Contenedor de Estadísticas (KPIs) - MODIFICADO -->
         <div class="kpi-container">
             <div class="kpi-card">
                 <h3>Volumen de Hoy (m³)</h3>
@@ -69,6 +69,7 @@ const cargarContenidoHTML = () => {
 
         <!-- Contenedor de Accesos Directos -->
         <div class="card">
+            <!-- TÍTULO "ACCESOS DIRECTOS" ELIMINADO -->
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
                     <span>🚚</span> Nuevo Registro
@@ -84,15 +85,13 @@ const cargarContenidoHTML = () => {
     `;
     
     // HTML para la sección de Registro (con botón "Volver")
-    // --- MODIFICADO: Se eliminó .form-grid y .form-grid-span-2 ---
     document.getElementById('tab-registro').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         <div class="card">
             <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
             <form id="transporteForm">
                 <input type="hidden" id="indiceEdicion">
-                
-                <!-- Campos apilados verticalmente -->
+                <!-- FORMULARIO EN UNA COLUMNA -->
                 <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
                 <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
                 <input type="number" id="volumen" placeholder="Volumen (m³)" step="0.01" readonly required>
@@ -128,7 +127,9 @@ const cargarContenidoHTML = () => {
     // HTML para la sección de Reportes (con botón "Volver")
     document.getElementById('tab-summary').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
-        <div class="card">
+        
+        <!-- DIV DE FILTROS AHORA TIENE CLASE "no-print" -->
+        <div class="card no-print"> 
             <h2>🔎 Filtrar e Imprimir</h2>
             <div class="filter-form">
                 <label for="filtroMes"><strong>Filtrar por Mes:</strong></label><input type="month" id="filtroMes">
@@ -149,7 +150,9 @@ const cargarContenidoHTML = () => {
                 <button id="btnExportarExcel" class="btn-success">📄 Exportar a Excel</button>
             </div>
         </div>
-        <div class="card">
+        <!-- FIN DEL DIV DE FILTROS -->
+
+        <div class="card"> {/* Card de la tabla */}
             <div class="print-only">TRANSPORTE DE MATERIALES PETREOS</div>
             <div id="print-filter-summary" class="print-only"></div> 
             <h2 class="no-print">Historial de Viajes</h2>
@@ -442,7 +445,7 @@ const administrarChoferesVehiculos = async () => {
     await render(); // Carga inicial
 };
 
-// Función para cargar las estadísticas del Panel de Inicio (KPIs)
+// --- FUNCIÓN DE KPIs MODIFICADA ---
 const cargarKPIs = async () => {
     try {
         // 1. Obtener referencias a los elementos del DOM
@@ -759,10 +762,6 @@ const inicializarApp = async () => {
     async function poblarSelects(collectionName, selectId) {
         try {
             const selectEl = document.getElementById(selectId);
-            if (!selectEl) {
-                console.warn(`Select con id ${selectId} no encontrado.`);
-                return;
-            }
             const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => selectEl.add(new Option(doc.data().nombre, doc.data().nombre)));
