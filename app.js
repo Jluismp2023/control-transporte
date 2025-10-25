@@ -27,6 +27,48 @@ onAuthStateChanged(auth, (user) => {
 });
 
 const cargarContenidoHTML = () => {
+    
+    // --- NUEVO: HTML PARA EL PANEL DE INICIO ---
+    document.getElementById('tab-inicio').innerHTML = `
+        <div class="card">
+            <h2>Panel de Control</h2>
+            <p>Bienvenido al sistema de control de transporte de OBRECO.</p>
+        </div>
+        
+        <!-- Contenedor de Estadísticas (KPIs) -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h3>Viajes de Hoy</h3>
+                <p id="kpi-viajes-hoy">Cargando...</p>
+            </div>
+            <div class="kpi-card">
+                <h3>Volumen de Hoy (m³)</h3>
+                <p id="kpi-volumen-hoy">Cargando...</p>
+            </div>
+            <div class="kpi-card">
+                <h3>Registros Totales</h3>
+                <p id="kpi-total-registros">Cargando...</p>
+            </div>
+        </div>
+
+        <!-- Contenedor de Accesos Directos -->
+        <div class="card">
+            <h2>Accesos Directos</h2>
+            <div class="quick-links">
+                <button class="quick-link-btn" data-tab="tab-registro">
+                    <span>🚚</span> Nuevo Registro
+                </button>
+                <button class="quick-link-btn" data-tab="tab-summary">
+                    <span>📊</span> Ver Reportes
+                </button>
+                <button class="quick-link-btn" data-tab="tab-admin">
+                    <span>⚙️</span> Administrar Datos
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // --- HTML existente ---
     document.getElementById('tab-registro').innerHTML = `
         <div class="card">
             <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
@@ -253,6 +295,46 @@ const administrarChoferesVehiculos = async () => {
     await render();
 };
 
+// --- NUEVO: FUNCIÓN PARA CARGAR ESTADÍSTICAS (KPIs) ---
+const cargarKPIs = async () => {
+    try {
+        const kpiViajes = document.getElementById('kpi-viajes-hoy');
+        const kpiVolumen = document.getElementById('kpi-volumen-hoy');
+        const kpiTotal = document.getElementById('kpi-total-registros');
+        
+        const hoy = getTodayDate(); // Usamos la función que ya tienes
+        
+        // 1. Query para los datos de HOY
+        const qHoy = query(collection(db, "registros"), where("fecha", "==", hoy));
+        const snapshotHoy = await getDocs(qHoy);
+        
+        let viajesHoy = 0;
+        let volumenHoy = 0;
+        snapshotHoy.forEach(doc => {
+            const registro = doc.data();
+            const numViajes = parseInt(registro.numViajes) || 0;
+            const volumen = parseFloat(registro.volumen) || 0;
+            viajesHoy += numViajes;
+            volumenHoy += (volumen * numViajes);
+        });
+
+        // 2. Query para el TOTAL
+        const snapshotTotal = await getDocs(query(collection(db, "registros")));
+        
+        // 3. Actualizar el HTML
+        kpiViajes.textContent = viajesHoy;
+        kpiVolumen.textContent = volumenHoy.toFixed(2);
+        kpiTotal.textContent = snapshotTotal.size; // Cantidad total de documentos/registros
+        
+    } catch (error) {
+        console.error("Error al cargar KPIs:", error);
+        // Opcional: mostrar error en las tarjetas
+        if(kpiViajes) kpiViajes.textContent = "Error";
+        if(kpiVolumen) kpiVolumen.textContent = "Error";
+        if(kpiTotal) kpiTotal.textContent = "Error";
+    }
+};
+
 const inicializarApp = async () => {
     cargarContenidoHTML();
 
@@ -317,7 +399,6 @@ const inicializarApp = async () => {
         renderizarRegistros(registrosData);
     };
     
-    // RE-AÑADIDO: Lógica de Pestañas
     document.querySelectorAll('.tab-button').forEach(tab => tab.addEventListener('click', () => {
         document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
@@ -500,14 +581,14 @@ const inicializarApp = async () => {
         if (target.classList.contains('delete-btn')) {
             if (confirm(`¿Seguro que quieres borrar este viaje?`)) {
                 await deleteDoc(doc(db, "registros", docId));
-                cargarRegistros();
+                await cargarRegistros(); // Recargar tabla
+                await cargarKPIs(); // Recargar estadísticas
             }
         } else if (target.classList.contains('edit-btn')) {
             const docSnap = await getDoc(doc(db, "registros", docId));
             if (docSnap.exists()) {
                 const registroAEditar = docSnap.data();
                 
-                // RE-AÑADIDO: Clic en la pestaña de registro
                 document.querySelector('.tab-button[data-tab="tab-registro"]').click();
                 
                 formViajeTitulo.textContent = `✍️ Modificando Viaje`;
@@ -566,7 +647,8 @@ const inicializarApp = async () => {
             if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
             else { await addDoc(collection(db, "registros"), registro); }
             
-            cargarRegistros();
+            await cargarRegistros(); // Recargar tabla
+            await cargarKPIs(); // Recargar estadísticas
             cancelarEdicion();
             
         } catch (error) {
@@ -582,6 +664,22 @@ const inicializarApp = async () => {
         }
     });
     
+    // --- NUEVO: LÓGICA PARA ACCESOS DIRECTOS ---
+    document.querySelectorAll('.quick-link-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            // Simular clic en la pestaña real
+            const tabButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+            if (tabButton) {
+                tabButton.click();
+            }
+        });
+    });
+
+    // Cargar los registros de la tabla
     await cargarRegistros();
+    
+    // Cargar las estadísticas (KPIs)
+    await cargarKPIs();
 };
 

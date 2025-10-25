@@ -24,15 +24,20 @@
         <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
     </div>
 
-    <!-- RE-AÑADIDO: HTML de las pestañas -->
+    <!-- HTML DE PESTAÑAS ACTUALIZADO -->
     <div class="tabs">
-        <button class="tab-button active" data-tab="tab-registro">Registro</button>
-        <button class="tab-button" data-tab="tab-admin">Administración</button>
-        <button class="tab-button" data-tab="tab-summary">Reportes</button>
+        <!-- "Inicio" es ahora la pestaña activa por defecto -->
+        <button class="tab-button active" data-tab="tab-inicio">🏠 Inicio</button>
+        <button class="tab-button" data-tab="tab-registro">🚚 Registro</button>
+        <button class="tab-button" data-tab="tab-admin">⚙️ Administración</button>
+        <button class="tab-button" data-tab="tab-summary">📊 Reportes</button>
     </div>
 
-    <!-- RE-AÑADIDO: Clases .tab-content y .active -->
-    <div id="tab-registro" class="tab-content active"></div>
+    <!-- CONTENEDOR PARA LA NUEVA PESTAÑA "INICIO" -->
+    <div id="tab-inicio" class="tab-content active"></div>
+    
+    <!-- Contenedores de pestañas existentes (se quitó 'active' de registro) -->
+    <div id="tab-registro" class="tab-content"></div>
     <div id="tab-admin" class="tab-content"></div>
     <div id="tab-summary" class="tab-content"></div>
     
@@ -44,3 +49,4 @@
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
