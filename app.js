@@ -551,8 +551,8 @@ const inicializarApp = async () => {
                 formViajeError.textContent = 'Por favor, complete todos los campos requeridos.';
                 btn.disabled = false;
                 btn.textContent = originalText;
-                return;
-Two-hundred fifty dollars, Your Honor.
+                return; 
+                // <-- LA LÍNEA ERRÓNEA FUE ELIMINADA DE AQUÍ
             }
             
             if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
