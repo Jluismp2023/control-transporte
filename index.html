@@ -94,67 +94,6 @@
             grid-column: 1 / -1;
         }
 
-        /* --- NUEVOS ESTILOS PARA DASHBOARD --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            padding: 10px;
-        }
-        .metric-card {
-            background: var(--color-blanco);
-            border-radius: 10px;
-            box-shadow: var(--sombra-suave);
-            padding: 30px 25px;
-            text-align: center;
-            border: 1px solid var(--color-borde);
-        }
-        .metric-label {
-            font-size: 1.1em;
-            color: var(--color-secundario);
-            margin-bottom: 15px;
-            display: block;
-        }
-        .metric-value {
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--color-primario);
-            display: block;
-        }
-        .dashboard-button {
-            background-color: var(--color-blanco);
-            color: var(--color-texto);
-            border: 1px solid var(--color-borde);
-            border-radius: 10px;
-            padding: 25px 20px;
-            font-size: 1.2em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            box-shadow: var(--sombra-suave);
-            text-align: center;
-        }
-        .dashboard-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
-            border-color: var(--color-primario);
-            color: var(--color-primario);
-        }
-        .dash-icon {
-            font-size: 2.8em;
-            line-height: 1;
-        }
-        .admin-only {
-            display: none; /* Oculto por defecto, JS lo mostrará si es admin */
-        }
-        /* --- FIN DE ESTILOS DASHBOARD --- */
-
-
         /* --- SECCIÓN DE IMPRESIÓN --- */
         @media print {
             body { 
@@ -199,8 +138,9 @@
                 margin-bottom: 10px;
             }
             
+            /* --- CAMBIO 2: Estilo para el nuevo resumen de filtros --- */
             #print-filter-summary {
-                display: block;
+                display: block; /* Asegura que se muestre al imprimir */
                 font-size: 9pt;
                 font-weight: normal;
                 font-style: italic;
@@ -216,20 +156,53 @@
             .tabs, .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
                 display: none; 
             }
-            /* Ocultar dashboard en impresión */
-            #tab-inicio { display: none; }
-
             .action-cell { display: none !important; }
             #btnLogout { display: none; }
             .tab-content.active { display: block !important; }
             
-            table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-            table thead { display: table-header-group; }
-            th, td { border: 1px solid #333 !important; padding: 5px; text-align: left; vertical-align: middle; word-break: break-word; }
-            th { background-color: #f2f7ff !important; font-weight: bold; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            #registrosBody tr:nth-child(even) { background-color: #F8F9FA !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            tfoot td { background-color: #f2f7ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; text-align: center; font-weight: bold; }
-            tfoot td:first-child { text-align: right; }
+            table { 
+                border-collapse: collapse; 
+                width: 100%; 
+                table-layout: fixed; 
+            }
+            
+            table thead { 
+                display: table-header-group; 
+            }
+
+            th, td { 
+                border: 1px solid #333 !important; 
+                padding: 5px;
+                text-align: left; 
+                vertical-align: middle; 
+                word-break: break-word;
+            }
+
+            th { 
+                background-color: #f2f7ff !important; 
+                font-weight: bold; 
+                text-align: center; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            
+            #registrosBody tr:nth-child(even) {
+                background-color: #F8F9FA !important;
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+
+            tfoot td { 
+                background-color: #f2f7ff !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                text-align: center; 
+                font-weight: bold;
+            }
+            tfoot td:first-child { 
+                text-align: right; 
+            }
+            
             th.action-cell, td.action-cell { display: none !important; }
 
             thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
@@ -244,18 +217,28 @@
             thead th:nth-child(10), tbody td:nth-child(10) { width: 4%; text-align: center; } /* # Viajes */
             thead th:nth-child(11), tbody td:nth-child(11) { width: 6%; text-align: center; font-weight: bold; } /* Vol. Total */
             
-            #signature-section { display: flex; justify-content: center; margin-top: 40px; page-break-inside: avoid; }
+            #signature-section {
+                display: flex; 
+                justify-content: center; 
+                margin-top: 40px;
+                page-break-inside: avoid;
+            }
             .signature-box { text-align: center; width: 350px; }
             .signature-box p { margin: 4px 0; font-size: 11pt; }
-            .signature-line { border-top: 1px solid #333; width: 80%; margin: 40px auto 8px auto; padding-top: 5px; }
+            .signature-line {
+                border-top: 1px solid #333; 
+                width: 80%; 
+                margin: 40px auto 8px auto; 
+                padding-top: 5px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="main-container">
-    <div class="header-container no-print">
-        <img id="logo" src="logo.jpg" alt="Logo OBRECO">
+    <div class="header-container">
+        <img id="logo" src="logo.png" alt="Logo de la Empresa">
         <div class="title-container">
             <h1>OBRAS EQUIPOS Y CONSTRUCCIONES<br>OBRECO CIA LTDA</h1>
             <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
@@ -263,18 +246,15 @@
         <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
     </div>
 
-    <div class="tabs no-print">
-        <button class="tab-button active" data-tab="tab-inicio">Inicio</button>
-        <button class="tab-button" data-tab="tab-registro">Registro</button>
-        <button class="tab-button admin-only" data-tab="tab-admin">Administración</button>
+    <div class="tabs">
+        <button class="tab-button active" data-tab="tab-registro">Registro</button>
+        <button class="tab-button" data-tab="tab-admin">Administración</button>
         <button class="tab-button" data-tab="tab-summary">Reportes</button>
     </div>
 
-    <div id="tab-inicio" class="tab-content active"></div>
-    <div id="tab-registro" class="tab-content"></div>
-    <div id="tab-admin" class="tab-content admin-only"></div>
+    <div id="tab-registro" class="tab-content active"></div>
+    <div id="tab-admin" class="tab-content"></div>
     <div id="tab-summary" class="tab-content"></div>
-    
     <div id="signature-section"></div>
 
 </div>
@@ -297,148 +277,16 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- FUNCIÓN onAuthStateChanged ACTUALIZADA CON ROLES ---
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
         if (!user) {
             window.location.href = 'login.html';
         } else {
             document.body.style.display = 'block';
-
-            // Comprobar rol de usuario
-            try {
-                const userDocRef = doc(db, "usuarios", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists() && userDocSnap.data().rol === 'admin') {
-                    // Es admin, mostrar elementos de admin
-                    document.querySelectorAll('.admin-only').forEach(el => {
-                        el.style.display = 'block'; // O 'flex', 'grid' según corresponda
-                    });
-                    // Ajuste para el tab de admin
-                    const adminTabBtn = document.querySelector('.tab-button[data-tab="tab-admin"]');
-                    if(adminTabBtn) adminTabBtn.style.display = 'inline-block';
-                    const adminTabContent = document.getElementById('tab-admin');
-                    if(adminTabContent) adminTabContent.style.display = 'none'; // Se oculta hasta que se haga clic
-
-                } else {
-                    // No es admin, ocultar elementos de admin
-                    document.querySelectorAll('.admin-only').forEach(el => {
-                        el.style.display = 'none';
-                    });
-                }
-            } catch (error) {
-                console.error("Error al verificar el rol del usuario:", error);
-                // Ocultar admin por seguridad
-                document.querySelectorAll('.admin-only').forEach(el => {
-                    el.style.display = 'none';
-                });
-            }
-
-            await inicializarApp();
+            inicializarApp();
         }
     });
 
-    // --- NUEVA FUNCIÓN PARA ACTIVAR PESTAÑAS ---
-    const activarPestana = (tabId) => {
-        // Ocultar todo el contenido
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        // Desactivar todos los botones de pestaña
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.classList.remove('active');
-        });
-
-        // Mostrar el contenido de la pestaña seleccionada
-        const contentToShow = document.getElementById(tabId);
-        if (contentToShow) {
-            contentToShow.classList.add('active');
-        }
-        
-        // Activar el botón de la pestaña seleccionada
-        const buttonToActivate = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
-        if (buttonToActivate) {
-            buttonToActivate.classList.add('active');
-        }
-    };
-
-    // --- NUEVA FUNCIÓN PARA MÉTRICAS DEL DASHBOARD ---
-    const cargarMetricasDashboard = async () => {
-        const volumenEl = document.getElementById('volumenMesActual');
-        const viajesEl = document.getElementById('viajesMesActual');
-        
-        if (!volumenEl || !viajesEl) return; // Salir si los elementos no existen
-
-        volumenEl.textContent = 'Cargando...';
-        viajesEl.textContent = 'Cargando...';
-
-        try {
-            const hoy = new Date();
-            const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
-            const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().slice(0, 10);
-
-            const q = query(collection(db, "registros"),
-                where("fecha", ">=", primerDiaMes),
-                where("fecha", "<=", ultimoDiaMes)
-            );
-
-            const querySnapshot = await getDocs(q);
-            let volumenTotalMes = 0;
-            let viajesTotalesMes = 0;
-
-            querySnapshot.forEach((doc) => {
-                const registro = doc.data();
-                const volumen = parseFloat(registro.volumen) || 0;
-                const numViajes = parseInt(registro.numViajes) || 0;
-                
-                volumenTotalMes += (volumen * numViajes);
-                viajesTotalesMes += numViajes;
-            });
-
-            volumenEl.textContent = `${volumenTotalMes.toFixed(2)} m³`;
-            viajesEl.textContent = `${viajesTotalesMes} viajes`;
-
-        } catch (error) {
-            console.error("Error al cargar métricas del dashboard:", error);
-            volumenEl.textContent = 'Error';
-            viajesEl.textContent = 'Error';
-        }
-    };
-
-
     const cargarContenidoHTML = () => {
-        // --- NUEVO: HTML PARA PESTAÑA INICIO ---
-        document.getElementById('tab-inicio').innerHTML = `
-            <h2 style="text-align: center; color: var(--color-primario); margin-bottom: 30px; border: none;">Panel de Control</h2>
-            <div class="dashboard-grid">
-                <div class="metric-card">
-                    <span class="metric-label">Volumen Total (Mes Actual)</span>
-                    <span id="volumenMesActual" class="metric-value">Cargando...</span>
-                </div>
-                <div class="metric-card">
-                    <span class="metric-label">Viajes Totales (Mes Actual)</span>
-                    <span id="viajesMesActual" class="metric-value">Cargando...</span>
-                </div>
-                <button class="dashboard-button" data-action="registrar">
-                    <span class="dash-icon">🚚</span>
-                    <span>Registrar Viaje</span>
-                </button>
-                <button class="dashboard-button" data-action="ver-reporte">
-                    <span class="dash-icon">📊</span>
-                    <span>Ver Reporte Detallado</span>
-                </button>
-                <button class="dashboard-button admin-only" data-action="administrar">
-                    <span class="dash-icon">⚙️</span>
-                    <span>Administrar Sistema</span>
-                </button>
-                <button class="dashboard-button" data-action="imprimir">
-                    <span class="dash-icon">🖨️</span>
-                    <span>Imprimir Reporte</span>
-                </button>
-            </div>
-            <p style="text-align: center; margin-top: 40px; color: #777; font-size: 0.9em;">APLICACION ELABORADA POR: ING. JOSE LUIS MACAS P.</p>
-        `;
-
         document.getElementById('tab-registro').innerHTML = `
             <div class="card">
                 <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
@@ -465,7 +313,7 @@
         document.getElementById('tab-admin').innerHTML = `
             <div class="admin-container">
                 <div class="admin-sidebar">
-                    <button data-section="choferes" class="active">👤 Nombres de Choferes</button>
+                    <button data-section="choferes">👤 Nombres de Choferes</button>
                     <button data-section="vehiculos">🚛 Asignar Vehículo</button>
                     <button data-section="materiales">💎 Materiales</button>
                     <button data-section="canteras">📍 Canteras</button>
@@ -548,10 +396,6 @@
         const form = document.getElementById(formId);
         const inputEl = document.getElementById(inputId);
         const listaUl = document.getElementById(listaId);
-        if (!form || !inputEl || !listaUl) {
-            console.error(`Error: No se encontraron elementos para ${collectionName}`);
-            return;
-        }
         const editIdInput = form.querySelector('.edit-id');
         const submitBtn = form.querySelector('button[type="submit"]');
         const resetForm = () => { editIdInput.value = ''; inputEl.value = ''; submitBtn.textContent = 'Agregar'; submitBtn.classList.remove('btn-success');};
@@ -569,18 +413,6 @@
                 items.forEach(item => sel.add(new Option(item.nombre, item.nombre)));
                 sel.value = currentValue;
             });
-            // Repoblar selects específicos del formulario de registro
-            if (['materiales', 'canteras', 'proyectos'].includes(collectionName)) {
-                const regSelectId = `#select${collectionName.charAt(0).toUpperCase() + collectionName.slice(1, -1)}`; // #selectMaterial, #selectCantera, #selectProyecto
-                const regSelect = document.querySelector(regSelectId);
-                if (regSelect) {
-                    const currentValue = regSelect.value;
-                    regSelect.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
-                    items.forEach(item => regSelect.add(new Option(item.nombre, item.nombre)));
-                    regSelect.value = currentValue;
-                }
-            }
-
             items.forEach(item => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span>${item.nombre}</span><div class="actions"><button class="list-action-btn edit-btn" title="Modificar" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button><button class="list-action-btn delete-btn" title="Borrar" data-id="${item.id}">🗑️</button></div>`;
@@ -592,14 +424,9 @@
             const nuevoValor = inputEl.value.trim();
             const idParaEditar = editIdInput.value;
             if (nuevoValor) {
-                try {
-                    if(idParaEditar) { await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); } 
-                    else { await addDoc(collection(db, collectionName), { nombre: nuevoValor }); }
-                    resetForm(); await render();
-                } catch(error) {
-                    console.error(`Error al guardar ${nombreSingular}:`, error);
-                    alert(`Error al guardar ${nombreSingular}.`);
-                }
+                if(idParaEditar) { await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); } 
+                else { await addDoc(collection(db, collectionName), { nombre: nuevoValor }); }
+                resetForm(); await render();
             }
         });
         listaUl.addEventListener('click', async e => {
@@ -608,13 +435,8 @@
             const id = target.dataset.id;
             if (target.classList.contains('delete-btn')) {
                 if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
-                    try {
-                        await deleteDoc(doc(db, collectionName, id));
-                        await render();
-                    } catch(error) {
-                        console.error(`Error al borrar ${nombreSingular}:`, error);
-                        alert(`Error al borrar ${nombreSingular}.`);
-                    }
+                    await deleteDoc(doc(db, collectionName, id));
+                    await render();
                 }
             } else if (target.classList.contains('edit-btn')) {
                 inputEl.value = target.dataset.nombre;
@@ -631,8 +453,6 @@
     const administrarChoferesVehiculos = async () => {
         const form = document.getElementById('choferVehiculoForm');
         const listaUl = document.getElementById('choferesVehiculosLista');
-        if (!form || !listaUl) return;
-
         const editIdInput = form.querySelector('.edit-id');
         const submitBtn = form.querySelector('button[type="submit"]');
         const selectNombreEl = document.getElementById('selectNombreAdmin');
@@ -664,14 +484,9 @@
             const idParaEditar = editIdInput.value;
             const data = { nombre: selectNombreEl.value, placa: nuevaPlacaEl.value.trim().toUpperCase(), volumen: parseFloat(nuevoVolumenEl.value) };
             if (!data.nombre || !data.placa || !data.volumen) return alert('Por favor, complete todos los campos.');
-            try {
-                if(idParaEditar) { await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data); } 
-                else { await addDoc(collection(db, "choferesVehiculos"), data); }
-                resetForm(); await render();
-            } catch(error) {
-                console.error("Error al guardar asignación:", error);
-                alert("Error al guardar asignación.");
-            }
+            if(idParaEditar) { await updateDoc(doc(db, "choferesVehiculos", idParaEditar), data); } 
+            else { await addDoc(collection(db, "choferesVehiculos"), data); }
+            resetForm(); await render();
         });
         listaUl.addEventListener('click', async (e) => {
             const target = e.target.closest('button');
@@ -679,13 +494,8 @@
             const id = target.dataset.id;
             if (target.classList.contains('delete-btn')) {
                 if (confirm(`¿Seguro que quieres borrar esta asignación?`)) {
-                    try {
-                        await deleteDoc(doc(db, "choferesVehiculos", id));
-                        await render();
-                    } catch(error) {
-                        console.error("Error al borrar asignación:", error);
-                        alert("Error al borrar asignación.");
-                    }
+                    await deleteDoc(doc(db, "choferesVehiculos", id));
+                    await render();
                 }
             } else if (target.classList.contains('edit-btn')) {
                 const item = choferesVehiculosCache.find(c => c.id === id);
@@ -702,44 +512,10 @@
         await render();
     };
 
-    // --- inicializarApp ACTUALIZADA ---
     const inicializarApp = async () => {
         cargarContenidoHTML();
 
-        // Cargar métricas del dashboard
-        await cargarMetricasDashboard();
-
-        // Event listener para botones del dashboard
-        document.querySelectorAll('.dashboard-button').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const action = e.currentTarget.dataset.action;
-                switch(action) {
-                    case 'registrar':
-                        activarPestana('tab-registro');
-                        break;
-                    case 'ver-reporte':
-                        activarPestana('tab-summary');
-                        break;
-                    case 'administrar':
-                        activarPestana('tab-admin');
-                        break;
-                    case 'imprimir':
-                        activarPestana('tab-summary');
-                        // Espera un momento para que la pestaña se renderice y luego clickea imprimir
-                        setTimeout(() => {
-                            document.getElementById('btnPrint')?.click();
-                        }, 100);
-                        break;
-                }
-            });
-        });
-
-
-        // Configurar fecha por defecto en formulario de registro
-        const fechaInput = document.getElementById('fecha');
-        if (fechaInput) {
-            fechaInput.value = new Date().toISOString().slice(0, 10);
-        }
+        document.getElementById('fecha').value = new Date().toISOString().slice(0, 10);
 
         document.getElementById('btnLogout').addEventListener('click', () => signOut(auth).catch((error) => console.error("Error al cerrar sesión", error)));
         
@@ -757,7 +533,7 @@
         const adminSections = {
             choferes: {
                 html: `<div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>`,
-                loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin', '#selectNombres'], 'Nombre de Chofer')
+                loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin'], 'Nombre de Chofer')
             },
             vehiculos: {
                 html: `<div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>`,
@@ -778,36 +554,33 @@
         };
 
         const showAdminSection = (sectionName) => {
-            if (!adminSections[sectionName] || !adminContent) return;
+            if (!adminSections[sectionName]) return;
             adminSidebarButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.section === sectionName));
             adminContent.innerHTML = adminSections[sectionName].html;
             adminSections[sectionName].loader();
         };
 
         adminSidebarButtons.forEach(button => button.addEventListener('click', () => showAdminSection(button.dataset.section)));
-        // Mostrar la primera sección de admin por defecto (si el contenedor existe)
-        if (document.getElementById('tab-admin')) {
-             showAdminSection('choferes');
-        }
+        showAdminSection('choferes');
 
         const cargarRegistros = async (filtros = []) => {
             let q = query(collection(db, "registros"));
             if (filtros.length > 0) { q = query(collection(db, "registros"), ...filtros); }
-            try {
-                const snapshot = await getDocs(q);
-                const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                renderizarRegistros(registrosData);
-            } catch(error) {
-                console.error("Error al cargar registros:", error);
-                renderizarRegistros([]); // Mostrar tabla vacía en caso de error
-            }
+            const snapshot = await getDocs(q);
+            const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            renderizarRegistros(registrosData);
         };
         
         document.querySelectorAll('.tab-button').forEach(tab => tab.addEventListener('click', () => {
-            activarPestana(tab.dataset.tab);
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab.dataset.tab).classList.add('active');
         }));
         
-        document.getElementById('btnPrint')?.addEventListener('click', () => {
+        // --- CAMBIO 3: Función de impresión actualizada ---
+        document.getElementById('btnPrint').addEventListener('click', () => {
+            // 1. Obtener los valores de los filtros
             const fechaInicio = document.getElementById('fechaInicio').value;
             const fechaFin = document.getElementById('fechaFin').value;
             const material = document.getElementById('filtroMaterial').value;
@@ -815,8 +588,10 @@
             const proyecto = document.getElementById('filtroProyecto').value;
             const filtroMes = document.getElementById('filtroMes').value;
 
+            // 2. Construir el HTML del resumen
             let filtrosUsados = [];
 
+            // Lógica para fechas
             if (filtroMes) {
                 const [year, month] = filtroMes.split('-');
                 filtrosUsados.push(`<strong>Mes:</strong> ${month}/${year}`);
@@ -829,27 +604,40 @@
                     filtrosUsados.push(`<strong>Hasta:</strong> ${fechaFin}`);
                 }
             }
-            if (material) { filtrosUsados.push(`<strong>Material:</strong> ${material}`); }
-            if (cantera) { filtrosUsados.push(`<strong>Cantera:</strong> ${cantera}`); }
-            if (proyecto) { filtrosUsados.push(`<strong>Proyecto:</strong> ${proyecto}`); }
 
+            if (material) {
+                filtrosUsados.push(`<strong>Material:</strong> ${material}`);
+            }
+            if (cantera) {
+                filtrosUsados.push(`<strong>Cantera:</strong> ${cantera}`);
+            }
+            if (proyecto) {
+                filtrosUsados.push(`<strong>Proyecto:</strong> ${proyecto}`);
+            }
+
+            // 3. Inyectar el HTML
             const resumenContainer = document.getElementById('print-filter-summary');
             if (filtrosUsados.length > 0) {
                 resumenContainer.innerHTML = '<i>Filtros Aplicados: &nbsp; ' + filtrosUsados.join(' &nbsp; | &nbsp; ') + '</i>';
             } else {
                 resumenContainer.innerHTML = '<i>Mostrando todos los registros (sin filtros)</i>';
             }
+
+            // 4. Llamar a la impresión
             window.print();
         });
         
-        document.getElementById('btnExportarExcel')?.addEventListener('click', () => {
+        document.getElementById('btnExportarExcel').addEventListener('click', () => {
             if (registrosFiltrados.length === 0) {
                 alert("No hay datos para exportar. Por favor, realiza una búsqueda primero.");
                 return;
             }
+            
             const tablaOriginal = document.getElementById('registrosTabla');
             const tablaClonada = tablaOriginal.cloneNode(true);
+            
             Array.from(tablaClonada.querySelectorAll('.action-cell')).forEach(celda => celda.remove());
+
             const hojaDeCalculo = XLSX.utils.table_to_sheet(tablaClonada, {raw: true});
             hojaDeCalculo['!cols'] = [
                 { wch: 5 }, { wch: 12 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, 
@@ -861,7 +649,7 @@
             XLSX.writeFile(libro, nombreArchivo);
         });
 
-        document.getElementById('filtroMes')?.addEventListener('change', () => {
+        document.getElementById('filtroMes').addEventListener('change', () => {
             const mesSeleccionado = document.getElementById('filtroMes').value;
             if (!mesSeleccionado) {
                 document.getElementById('fechaInicio').value = '';
@@ -876,7 +664,7 @@
             document.getElementById('btnFiltrar').click();
         });
 
-        document.getElementById('btnFiltrar')?.addEventListener('click', () => {
+        document.getElementById('btnFiltrar').addEventListener('click', () => {
             const fechaInicio = document.getElementById('fechaInicio').value;
             const fechaFin = document.getElementById('fechaFin').value;
             const material = document.getElementById('filtroMaterial').value;
@@ -891,7 +679,7 @@
             cargarRegistros(filtros);
         });
 
-        document.getElementById('btnMostrarTodo')?.addEventListener('click', () => {
+        document.getElementById('btnMostrarTodo').addEventListener('click', () => {
             document.getElementById('filtroMes').value = '';
             document.getElementById('fechaInicio').value = '';
             document.getElementById('fechaFin').value = '';
@@ -901,17 +689,17 @@
             cargarRegistros();
         });
 
-        selectNombres?.addEventListener('change', async () => {
+        selectNombres.addEventListener('change', async () => {
             const nombreSeleccionado = selectNombres.value;
             selectPlaca.innerHTML = '<option value="">2. Seleccionar Placa</option>';
             volumenInput.value = '';
             
+            const q = query(collection(db, "choferesVehiculos"), where("nombre", "==", nombreSeleccionado));
+            const snapshot = await getDocs(q);
+            const vehiculosDelChofer = [];
+            snapshot.forEach(doc => vehiculosDelChofer.push(doc.data()));
+
             if (nombreSeleccionado) {
-                const q = query(collection(db, "choferesVehiculos"), where("nombre", "==", nombreSeleccionado));
-                const snapshot = await getDocs(q);
-                const vehiculosDelChofer = [];
-                snapshot.forEach(doc => vehiculosDelChofer.push(doc.data()));
-                
                 vehiculosDelChofer.forEach(v => {
                     const option = new Option(`${v.placa} (${v.volumen} m³)`, v.placa);
                     option.dataset.volumen = v.volumen;
@@ -923,19 +711,24 @@
             }
         });
         
-        // Cargar selects de filtros y formulario
-        const poblarSelectsFiltro = async (collectionName, selectId) => {
+        const qNombres = query(collection(db, "nombresDeChoferes"));
+        const snapshotNombres = await getDocs(qNombres);
+        snapshotNombres.forEach(doc => selectNombres.add(new Option(doc.data().nombre, doc.data().nombre)));
+        
+        const poblarSelects = async (collectionName, selectId) => {
             const selectEl = document.getElementById(selectId);
-            if (!selectEl) return;
             const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => selectEl.add(new Option(doc.data().nombre, doc.data().nombre)));
         };
-        poblarSelectsFiltro('materiales', 'filtroMaterial');
-        poblarSelectsFiltro('canteras', 'filtroCantera');
-        poblarSelectsFiltro('proyectos', 'filtroProyecto');
+        poblarSelects('materiales', 'selectMaterial');
+        poblarSelects('canteras', 'selectCantera');
+        poblarSelects('proyectos', 'selectProyecto');
+        poblarSelects('materiales', 'filtroMaterial');
+        poblarSelects('canteras', 'filtroCantera');
+        poblarSelects('proyectos', 'filtroProyecto');
 
-        selectPlaca?.addEventListener('change', () => {
+        selectPlaca.addEventListener('change', () => {
             const selectedOption = selectPlaca.options[selectPlaca.selectedIndex];
             volumenInput.value = selectedOption.dataset.volumen || '';
         });
@@ -949,11 +742,10 @@
             btnSubmitViaje.textContent = 'Agregar Registro';
             btnSubmitViaje.classList.replace('btn-success', 'btn-primary');
             document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fecha').value = new Date().toISOString().slice(0, 10); // Resetear fecha
         };
-        document.getElementById('btnCancelarEdicion')?.addEventListener('click', cancelarEdicion);
+        document.getElementById('btnCancelarEdicion').addEventListener('click', cancelarEdicion);
 
-        document.getElementById('registrosBody')?.addEventListener('click', async e => {
+        document.getElementById('registrosBody').addEventListener('click', async e => {
             const target = e.target.closest('button');
             if (!target) return;
             const docId = target.dataset.id;
@@ -966,14 +758,11 @@
                 const docSnap = await getDoc(doc(db, "registros", docId));
                 if (docSnap.exists()) {
                     const registroAEditar = docSnap.data();
-                    activarPestana('tab-registro');
+                    document.querySelector('.tab-button[data-tab="tab-registro"]').click();
                     formViajeTitulo.textContent = `✍️ Modificando Viaje`;
                     indiceEdicionInput.value = docId;
                     selectNombres.value = registroAEditar.nombres;
-                    
-                    // Disparar 'change' y esperar a que se llenen las placas
                     selectNombres.dispatchEvent(new Event('change'));
-                    
                     setTimeout(() => {
                         selectPlaca.value = registroAEditar.placa;
                         selectPlaca.dispatchEvent(new Event('change'));
@@ -983,8 +772,7 @@
                         document.getElementById('selectProyecto').value = registroAEditar.proyecto;
                         document.getElementById('numViajes').value = registroAEditar.numViajes;
                         document.getElementById('observaciones').value = registroAEditar.observaciones || '';
-                    }, 300); // Dar tiempo a que el evento async de placas termine
-
+                    }, 200);
                     btnSubmitViaje.textContent = 'Guardar Cambios';
                     btnSubmitViaje.classList.replace('btn-primary', 'btn-success');
                     document.getElementById('btnCancelarEdicion').style.display = 'block';
@@ -993,7 +781,7 @@
             }
         });
 
-        transporteForm?.addEventListener('submit', async e => {
+        transporteForm.addEventListener('submit', async e => {
             e.preventDefault();
             const btn = btnSubmitViaje;
             const originalText = btn.textContent;
@@ -1012,35 +800,23 @@
                     proyecto: document.getElementById('selectProyecto').value,
                     observaciones: document.getElementById('observaciones').value
                 };
-                if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha || !registro.volumen || !registro.numViajes) {
+                if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha) {
                     alert('Por favor, complete todos los campos requeridos.');
-                    btn.disabled = false;
-                    btn.textContent = originalText;
                     return;
                 }
                 if (idParaEditar) { await updateDoc(doc(db, "registros", idParaEditar), registro); } 
                 else { await addDoc(collection(db, "registros"), registro); }
-                
+                cargarRegistros();
                 cancelarEdicion();
-                
-                // Si estamos en la pestaña de reportes, actualizarla. Si no, ir a ella.
-                if(document.getElementById('tab-summary').classList.contains('active')) {
-                    await cargarRegistros();
-                } else {
-                    activarPestana('tab-summary');
-                }
-                
-                // Actualizar métricas del dashboard en segundo plano
-                cargarMetricasDashboard();
-
             } catch (error) {
                 console.error("Error al guardar el registro:", error);
                 alert("Hubo un error al guardar el registro.");
             } finally {
                 btn.disabled = false;
-                btn.textContent = originalText;
-                if(indiceEdicionInput.value) { // Si estábamos editando
-                    cancelarEdicion();
+                if (!indiceEdicionInput.value) {
+                    btn.textContent = 'Agregar Registro';
+                } else {
+                    btn.textContent = 'Guardar Cambios';
                 }
             }
         });
