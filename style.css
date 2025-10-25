@@ -11,12 +11,12 @@
     --sombra-suave: 0 4px 6px rgba(0,0,0,0.08);
 }
 
-body { 
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; 
-    margin: 0; 
-    background-color: var(--color-fondo); 
-    color: var(--color-texto); 
-    display: none;
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    display: none; /* Initially hide body until auth check */
 }
 .main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
 .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
@@ -28,24 +28,26 @@ body {
 
 h2, h3 { color: var(--color-primario); text-align: center; }
 h2 { border-bottom: 2px solid #eef; padding-bottom: 10px; }
-.card { 
-    background: var(--color-blanco); 
-    padding: 25px; 
-    border-radius: 10px; 
+.card {
+    background: var(--color-blanco);
+    padding: 25px;
+    border-radius: 10px;
     box-shadow: var(--sombra-suave);
     border: 1px solid var(--color-borde);
-    margin-bottom: 30px; 
+    margin-bottom: 30px;
 }
 
-/* --- NUEVO: OCULTAR BARRA DE PESTAÑAS --- */
-.tabs { 
-    display: none; 
+/* --- Hide tab bar --- */
+.tabs {
+    display: none;
 }
 
+/* Tab content visibility control */
 .tab-content { display: none; }
 .tab-content.active { display: block; animation: fadeIn 0.5s; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+/* Form styles */
 form { display: flex; flex-direction: column; gap: 15px; }
 ul { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
 li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
@@ -60,7 +62,7 @@ button:disabled { opacity: 0.7; cursor: not-allowed; }
 .delete-btn { background-color: var(--color-error); color: var(--color-blanco); }
 .edit-btn { background-color: var(--color-aviso); color: black; }
 
-/* --- NUEVO: ESTILO PARA BOTÓN "VOLVER" --- */
+/* Back to Home button style */
 .btn-back-to-home {
     background-color: var(--color-secundario);
     color: white;
@@ -75,7 +77,7 @@ button:disabled { opacity: 0.7; cursor: not-allowed; }
     background-color: #5a6268;
 }
 
-
+/* Table styles */
 table { width: 100%; margin-top: 20px; border-collapse: collapse; }
 th, td { border: 1px solid var(--color-borde); padding: 10px; text-align: left; word-break: break-word; }
 th { background-color: #f2f7ff; }
@@ -83,35 +85,38 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 #registrosBody tr:nth-child(even) { background-color: var(--color-fondo); }
 #registrosBody tr:hover { background-color: #E9ECEF; }
 #registrosBody .action-cell { display: flex; gap: 5px; }
+
+/* Admin section layout */
 .admin-container { display: flex; gap: 20px; flex-wrap: wrap; }
 .admin-sidebar { flex: 1 1 200px; display: flex; flex-direction: column; gap: 10px; min-width: 200px; }
 .admin-sidebar button { width: 100%; text-align: left; padding: 15px; background-color: #eee; color: var(--color-texto); }
 .admin-sidebar button.active { background-color: var(--color-primario); color: var(--color-blanco); }
 .admin-content { flex: 1 1 60%; min-width: 300px; }
+
+/* Form buttons layout */
 .form-buttons { display: flex; gap: 10px; }
+
+/* Filter form layout */
 .filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
 .filter-form label { font-weight: bold; }
+
+/* Initially hidden elements */
 #btnCancelarEdicion { display: none; }
 .print-only { display: none; }
 #signature-section { display: none; }
 
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-.form-grid-span-2 {
-    grid-column: 1 / -1;
+/* --- REMOVED: .form-grid and .form-grid-span-2 styles --- */
+
+/* Form error message style */
+.error-message {
+    color: var(--color-error);
+    font-weight: bold;
+    margin-top: 15px;
+    min-height: 20px;
+    text-align: center;
 }
 
-.error-message { 
-    color: var(--color-error); 
-    font-weight: bold; 
-    margin-top: 15px; 
-    min-height: 20px; 
-    text-align: center; 
-}
-
+/* KPI section layout */
 .kpi-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -138,6 +143,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     margin: 10px 0 0 0;
 }
 
+/* Quick Links section layout */
 .quick-links {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -169,17 +175,17 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 
 
-/* --- SECCIÓN DE IMPRESIÓN --- */
+/* --- Print specific styles --- */
 @media print {
-    body { 
-        background-color: white; 
-        font-size: 9pt; 
-        font-family: Arial, Helvetica, sans-serif; 
-        display: block !important; 
+    body {
+        background-color: white;
+        font-size: 9pt;
+        font-family: Arial, Helvetica, sans-serif;
+        display: block !important;
     }
     
     @page {
-        size: A4 landscape; 
+        size: A4 landscape;
         margin: 1.5cm;
         
         @top-center {
@@ -189,24 +195,24 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
             color: #333;
             margin-top: 0.5cm;
         }
-        @bottom-center { 
-            content: "Página " counter(page); 
-            font-size: 9pt; 
-            color: #666; 
+        @bottom-center {
+            content: "Página " counter(page);
+            font-size: 9pt;
+            color: #666;
         }
     }
     
     .main-container { margin: 0; padding: 0; }
-    .card { 
-        box-shadow: none; 
-        border: none; 
-        padding: 0; 
+    .card {
+        box-shadow: none;
+        border: none;
+        padding: 0;
         margin-bottom: 10px;
-        page-break-inside: avoid; 
+        page-break-inside: avoid;
     }
     
-    .print-only { 
-        display: block; 
+    .print-only {
+        display: block;
         text-align: center;
         font-size: 1.1em;
         font-weight: bold;
@@ -214,7 +220,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     }
     
     #print-filter-summary {
-        display: block; 
+        display: block;
         font-size: 9pt;
         font-weight: normal;
         font-style: italic;
@@ -225,64 +231,61 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         padding-bottom: 10px;
     }
     
+    /* Hide elements not for printing */
     .no-print { display: none; }
     .header-container { display: none; }
-    
-    /* MODIFICADO: ya no necesitamos ocultar .tabs */
-    .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) { 
-        display: none; 
+    .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) {
+        display: none;
     }
-    
     .action-cell { display: none !important; }
     #btnLogout { display: none; }
     
+    /* Ensure active content is visible */
     .tab-content.active { display: block !important; }
 
-    table { 
-        border-collapse: collapse; 
-        width: 100%; 
-        table-layout: fixed; 
+    /* Print table styles */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
     }
-    
-    table thead { 
-        display: table-header-group; 
+    table thead {
+        display: table-header-group; /* Repeat header on each page */
     }
-
-    th, td { 
-        border: 1px solid #333 !important; 
+    th, td {
+        border: 1px solid #333 !important;
         padding: 5px;
-        text-align: left; 
-        vertical-align: middle; 
+        text-align: left;
+        vertical-align: middle;
         word-break: break-word;
     }
-
-    th { 
-        background-color: #f2f7ff !important; 
-        font-weight: bold; 
-        text-align: center; 
-        -webkit-print-color-adjust: exact; 
-        print-color-adjust: exact; 
-    }
-    
-    #registrosBody tr:nth-child(even) {
-        background-color: #F8F9FA !important;
-        -webkit-print-color-adjust: exact; 
+    th {
+        background-color: #f2f7ff !important;
+        font-weight: bold;
+        text-align: center;
+        -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-
-    tfoot td { 
-        background-color: #f2f7ff !important; 
-        -webkit-print-color-adjust: exact; 
-        print-color-adjust: exact; 
-        text-align: center; 
+    #registrosBody tr:nth-child(even) {
+        background-color: #F8F9FA !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    tfoot td {
+        background-color: #f2f7ff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        text-align: center;
         font-weight: bold;
     }
-    tfoot td:first-child { 
-        text-align: right; 
+    tfoot td:first-child {
+        text-align: right;
     }
     
+    /* Hide action column in print */
     th.action-cell, td.action-cell { display: none !important; }
 
+    /* Column widths for print */
     thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
     thead th:nth-child(2), tbody td:nth-child(2) { width: 8%; } /* Fecha */
     thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; } /* Nombres */
@@ -295,18 +298,19 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     thead th:nth-child(10), tbody td:nth-child(10) { width: 4%; text-align: center; } /* # Viajes */
     thead th:nth-child(11), tbody td:nth-child(11) { width: 6%; text-align: center; font-weight: bold; } /* Vol. Total */
     
+    /* Signature section for print */
     #signature-section {
-        display: flex; 
-        justify-content: center; 
+        display: flex;
+        justify-content: center;
         margin-top: 40px;
         page-break-inside: avoid;
     }
     .signature-box { text-align: center; width: 350px; }
     .signature-box p { margin: 4px 0; font-size: 11pt; }
     .signature-line {
-        border-top: 1px solid #333; 
-        width: 80%; 
-        margin: 40px auto 8px auto; 
+        border-top: 1px solid #333;
+        width: 80%;
+        margin: 40px auto 8px auto;
         padding-top: 5px;
     }
 }

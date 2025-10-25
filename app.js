@@ -51,7 +51,7 @@ const cargarContenidoHTML = () => {
     // HTML para el Panel de Inicio
     document.getElementById('tab-inicio').innerHTML = `
         
-        <!-- Contenedor de Estadísticas (KPIs) - MODIFICADO -->
+        <!-- Contenedor de Estadísticas (KPIs) -->
         <div class="kpi-container">
             <div class="kpi-card">
                 <h3>Volumen de Hoy (m³)</h3>
@@ -69,7 +69,6 @@ const cargarContenidoHTML = () => {
 
         <!-- Contenedor de Accesos Directos -->
         <div class="card">
-            <!-- TÍTULO "ACCESOS DIRECTOS" ELIMINADO -->
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
                     <span>🚚</span> Nuevo Registro
@@ -85,23 +84,25 @@ const cargarContenidoHTML = () => {
     `;
     
     // HTML para la sección de Registro (con botón "Volver")
+    // --- MODIFICADO: Se eliminó .form-grid y .form-grid-span-2 ---
     document.getElementById('tab-registro').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         <div class="card">
             <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
             <form id="transporteForm">
                 <input type="hidden" id="indiceEdicion">
-                <div class="form-grid">
-                    <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
-                    <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
-                    <input type="number" id="volumen" placeholder="Volumen (m³)" step="0.01" readonly required>
-                    <select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select>
-                    <input type="date" id="fecha" required>
-                    <input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required>
-                    <select id="selectCantera" required class="form-grid-span-2"><option value="">Seleccionar Cantera</option></select>
-                    <select id="selectProyecto" required class="form-grid-span-2"><option value="">Seleccionar Proyecto</option></select>
-                    <textarea id="observaciones" placeholder="Observaciones (opcional)" rows="3" class="form-grid-span-2"></textarea>
-                </div>
+                
+                <!-- Campos apilados verticalmente -->
+                <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
+                <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
+                <input type="number" id="volumen" placeholder="Volumen (m³)" step="0.01" readonly required>
+                <select id="selectMaterial" required><option value="">3. Seleccionar Material</option></select>
+                <input type="date" id="fecha" required>
+                <input type="number" id="numViajes" placeholder="# de Viajes" value="1" min="1" required>
+                <select id="selectCantera" required><option value="">Seleccionar Cantera</option></select>
+                <select id="selectProyecto" required><option value="">Seleccionar Proyecto</option></select>
+                <textarea id="observaciones" placeholder="Observaciones (opcional)" rows="3"></textarea>
+                
                 <div class="form-buttons">
                     <button type="submit" id="btnSubmitViaje" class="btn-primary" style="flex-grow: 1;">Agregar Registro</button>
                     <button type="button" id="btnCancelarEdicion" class="btn-secondary" style="flex-grow: 1;">Cancelar</button>
@@ -441,7 +442,7 @@ const administrarChoferesVehiculos = async () => {
     await render(); // Carga inicial
 };
 
-// --- FUNCIÓN DE KPIs MODIFICADA ---
+// Función para cargar las estadísticas del Panel de Inicio (KPIs)
 const cargarKPIs = async () => {
     try {
         // 1. Obtener referencias a los elementos del DOM
@@ -758,6 +759,10 @@ const inicializarApp = async () => {
     async function poblarSelects(collectionName, selectId) {
         try {
             const selectEl = document.getElementById(selectId);
+            if (!selectEl) {
+                console.warn(`Select con id ${selectId} no encontrado.`);
+                return;
+            }
             const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => selectEl.add(new Option(doc.data().nombre, doc.data().nombre)));
