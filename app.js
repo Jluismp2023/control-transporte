@@ -18,6 +18,21 @@ const auth = getAuth(app);
 // Función helper para obtener la fecha de hoy en formato YYYY-MM-DD
 const getTodayDate = () => new Date().toISOString().slice(0, 10);
 
+// Función helper para formatear fechas (para evitar problemas de zona horaria)
+const formatDate = (date) => {
+    const d = new Date(date);
+    let month = '' + (d.getMonth() + 1);
+    let day = '' + d.getDate();
+    const year = d.getFullYear();
+
+    if (month.length < 2) 
+        month = '0' + month;
+    if (day.length < 2) 
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
 // Comprobar estado de autenticación
 onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -35,21 +50,20 @@ const cargarContenidoHTML = () => {
     
     // HTML para el Panel de Inicio
     document.getElementById('tab-inicio').innerHTML = `
-        <!-- TARJETA DE BIENVENIDA ELIMINADA -->
         
-        <!-- Contenedor de Estadísticas (KPIs) -->
+        <!-- Contenedor de Estadísticas (KPIs) - MODIFICADO -->
         <div class="kpi-container">
-            <div class="kpi-card">
-                <h3>Viajes de Hoy</h3>
-                <p id="kpi-viajes-hoy">Cargando...</p>
-            </div>
             <div class="kpi-card">
                 <h3>Volumen de Hoy (m³)</h3>
                 <p id="kpi-volumen-hoy">Cargando...</p>
             </div>
             <div class="kpi-card">
-                <h3>Registros Totales</h3>
-                <p id="kpi-total-registros">Cargando...</p>
+                <h3>Volumen Semanal (m³)</h3>
+                <p id="kpi-volumen-semanal">Cargando...</p>
+            </div>
+            <div class="kpi-card">
+                <h3>Volumen Mensual (m³)</h3>
+                <p id="kpi-volumen-mensual">Cargando...</p>
             </div>
         </div>
 
@@ -427,46 +441,88 @@ const administrarChoferesVehiculos = async () => {
     await render(); // Carga inicial
 };
 
-// Función para cargar las estadísticas del Panel de Inicio (KPIs)
+// --- FUNCIÓN DE KPIs MODIFICADA ---
 const cargarKPIs = async () => {
     try {
-        const kpiViajes = document.getElementById('kpi-viajes-hoy');
-        const kpiVolumen = document.getElementById('kpi-volumen-hoy');
-        const kpiTotal = document.getElementById('kpi-total-registros');
+        // 1. Obtener referencias a los elementos del DOM
+        const kpiVolumenHoyEl = document.getElementById('kpi-volumen-hoy');
+        const kpiVolumenSemanalEl = document.getElementById('kpi-volumen-semanal');
+        const kpiVolumenMensualEl = document.getElementById('kpi-volumen-mensual');
         
-        // Si los elementos no existen (ej. en medio de una recarga), salir.
-        if (!kpiViajes || !kpiVolumen || !kpiTotal) return;
+        if (!kpiVolumenHoyEl || !kpiVolumenSemanalEl || !kpiVolumenMensualEl) {
+             console.log("Elementos KPI no encontrados, saltando carga.");
+             return;
+        }
 
-        const hoy = getTodayDate(); 
+        // Poner en estado de carga
+        kpiVolumenHoyEl.textContent = "Cargando...";
+        kpiVolumenSemanalEl.textContent = "Cargando...";
+        kpiVolumenMensualEl.textContent = "Cargando...";
+
+        // 2. Definir rangos de fechas
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        // Hoy
+        const hoyStr = formatDate(hoy);
+
+        // Semanal (Domingo a Sábado)
+        const diaSemana = hoy.getDay(); // 0 = Domingo
+        const inicioSemana = new Date(hoy);
+        inicioSemana.setDate(hoy.getDate() - diaSemana);
+        const finSemana = new Date(inicioSemana);
+        finSemana.setDate(inicioSemana.getDate() + 6);
         
-        // 1. Query para los datos de HOY
-        const qHoy = query(collection(db, "registros"), where("fecha", "==", hoy));
+        const inicioSemanaStr = formatDate(inicioSemana);
+        const finSemanaStr = formatDate(finSemana);
+
+        // Mensual
+        const anio = hoy.getFullYear();
+        const mes = hoy.getMonth();
+        const inicioMes = new Date(anio, mes, 1);
+        const finMes = new Date(anio, mes + 1, 0); // Día 0 del prox mes
+        
+        const inicioMesStr = formatDate(inicioMes);
+        const finMesStr = formatDate(finMes);
+
+        // 3. Crear función para sumar volumen
+        const calcularVolumen = (snapshot) => {
+            let volumenTotal = 0;
+            snapshot.forEach(doc => {
+                const registro = doc.data();
+                const numViajes = parseInt(registro.numViajes) || 0;
+                const volumen = parseFloat(registro.volumen) || 0;
+                volumenTotal += (volumen * numViajes);
+            });
+            return volumenTotal;
+        };
+
+        // 4. Ejecutar Queries
+        
+        // Query Hoy
+        const qHoy = query(collection(db, "registros"), where("fecha", "==", hoyStr));
         const snapshotHoy = await getDocs(qHoy);
+        kpiVolumenHoyEl.textContent = calcularVolumen(snapshotHoy).toFixed(2);
         
-        let viajesHoy = 0;
-        let volumenHoy = 0;
-        snapshotHoy.forEach(doc => {
-            const registro = doc.data();
-            const numViajes = parseInt(registro.numViajes) || 0;
-            const volumen = parseFloat(registro.volumen) || 0;
-            viajesHoy += numViajes;
-            volumenHoy += (volumen * numViajes);
-        });
+        // Query Semanal
+        const qSemana = query(collection(db, "registros"), 
+                            where("fecha", ">=", inicioSemanaStr), 
+                            where("fecha", "<=", finSemanaStr));
+        const snapshotSemana = await getDocs(qSemana);
+        kpiVolumenSemanalEl.textContent = calcularVolumen(snapshotSemana).toFixed(2);
 
-        // 2. Query para el TOTAL
-        const snapshotTotal = await getDocs(query(collection(db, "registros")));
-        
-        // 3. Actualizar el HTML
-        kpiViajes.textContent = viajesHoy;
-        kpiVolumen.textContent = volumenHoy.toFixed(2);
-        kpiTotal.textContent = snapshotTotal.size;
+        // Query Mensual
+        const qMes = query(collection(db, "registros"), 
+                         where("fecha", ">=", inicioMesStr), 
+                         where("fecha", "<=", finMesStr));
+        const snapshotMes = await getDocs(qMes);
+        kpiVolumenMensualEl.textContent = calcularVolumen(snapshotMes).toFixed(2);
         
     } catch (error) {
         console.error("Error al cargar KPIs:", error);
-        // Opcional: mostrar error en las tarjetas
-        if(document.getElementById('kpi-viajes-hoy')) document.getElementById('kpi-viajes-hoy').textContent = "Error";
         if(document.getElementById('kpi-volumen-hoy')) document.getElementById('kpi-volumen-hoy').textContent = "Error";
-        if(document.getElementById('kpi-total-registros')) document.getElementById('kpi-total-registros').textContent = "Error";
+        if(document.getElementById('kpi-volumen-semanal')) document.getElementById('kpi-volumen-semanal').textContent = "Error";
+        if(document.getElementById('kpi-volumen-mensual')) document.getElementById('kpi-volumen-mensual').textContent = "Error";
     }
 };
 
@@ -630,8 +686,8 @@ const inicializarApp = async () => {
         const [year, month] = mesSeleccionado.split('-').map(Number);
         const primerDia = new Date(year, month - 1, 1);
         const ultimoDia = new Date(year, month, 0);
-        document.getElementById('fechaInicio').value = primerDia.toISOString().slice(0, 10);
-        document.getElementById('fechaFin').value = ultimoDia.toISOString().slice(0, 10);
+        document.getElementById('fechaInicio').value = formatDate(primerDia);
+        document.getElementById('fechaFin').value = formatDate(ultimoDia);
         document.getElementById('btnFiltrar').click();
     });
 
