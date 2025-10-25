@@ -102,10 +102,8 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 
 /* Initially hidden elements */
 #btnCancelarEdicion { display: none; }
-.print-only { display: none; }
+.print-only { display: none; } /* Default hide for print-only elements */
 #signature-section { display: none; }
-
-/* --- REMOVED: .form-grid and .form-grid-span-2 styles --- */
 
 /* Form error message style */
 .error-message {
@@ -182,27 +180,32 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         font-size: 9pt;
         font-family: Arial, Helvetica, sans-serif;
         display: block !important;
+        margin: 0; /* Ensure no default body margin interferes */
+        padding: 0;
     }
     
     @page {
         size: A4 landscape;
-        margin: 1.5cm;
+        margin: 2cm 1.5cm 2cm 1.5cm; /* Margen superior, derecho, inferior, izquierdo */
         
-        @top-center {
-            content: "OBRAS EQUIPOS Y CONSTRUCCIONES OBRECO CIA LTDA";
-            font-size: 10pt;
-            font-weight: bold;
-            color: #333;
-            margin-top: 0.5cm;
-        }
+        /* --- ELIMINADO: @top-center --- */
+        
         @bottom-center {
             content: "Página " counter(page);
             font-size: 9pt;
             color: #666;
+            vertical-align: top; /* Ajustar posición si es necesario */
+            padding-top: 5mm; /* Añadir espacio sobre el número de página */
         }
     }
     
-    .main-container { margin: 0; padding: 0; }
+    .main-container { 
+        margin: 0; 
+        padding: 0; 
+        width: 100%; 
+        max-width: none; 
+    }
+    
     .card {
         box-shadow: none;
         border: none;
@@ -212,11 +215,60 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     }
     
     .print-only {
-        display: block;
-        text-align: center;
-        font-size: 1.1em;
+        display: block !important; /* Make print-only visible */
+    }
+
+    /* --- NUEVO: Estilos para el encabezado de impresión --- */
+    .print-header {
+        display: flex !important; /* Asegurar que se muestre como flex */
+        align-items: center; /* Centrar verticalmente */
+        justify-content: space-between; /* Espacio entre logo y texto */
+        width: 100%;
+        padding-bottom: 10px; /* Espacio debajo del header */
+        border-bottom: 1px solid #ccc; /* Línea separadora */
+        margin-bottom: 15px; /* Espacio antes de la tabla */
+        position: fixed; /* Fijar en la parte superior */
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: white; /* Fondo blanco para que no se superponga */
+        padding: 10px 1.5cm; /* Alinear con márgenes de página */
+        box-sizing: border-box; /* Incluir padding en el width */
+        z-index: 10;
+        /* page-break-after: always;  No, handle with margin */
+    }
+    
+    .print-header img {
+        height: 40px; /* Ajustar tamaño del logo para impresión */
+        max-width: 150px; /* Limitar ancho si es necesario */
+        margin-right: 15px;
+    }
+
+    .print-header-titles {
+        text-align: right;
+    }
+
+    .print-header-titles h1 {
+        margin: 0;
+        font-size: 11pt; /* Tamaño ajustado para impresión */
+        line-height: 1.2;
+        color: #0056b3; /* Usar colores si la impresora lo permite */
         font-weight: bold;
-        margin-bottom: 10px;
+    }
+
+    .print-header-titles h2 {
+        margin: 2px 0 0 0;
+        font-size: 9pt; /* Tamaño ajustado */
+        color: #555;
+        font-weight: normal;
+        border: none; /* Quitar borde si lo tuviera */
+    }
+    
+    /* Empujar contenido principal hacia abajo para evitar superposición con header fijo */
+    body::before {
+        content: "";
+        display: block;
+        height: 60px; /* Altura aproximada del header + margen */
     }
     
     #print-filter-summary {
@@ -232,16 +284,17 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     }
     
     /* Hide elements not for printing */
-    .no-print { display: none; }
-    .header-container { display: none; }
-    .tab-content:not(.active), form, .list-action-btn, .card:has(.filter-form) {
-        display: none;
-    }
+    .no-print { display: none !important; } /* Usar important para asegurar */
+    
     .action-cell { display: none !important; }
-    #btnLogout { display: none; }
     
     /* Ensure active content is visible */
-    .tab-content.active { display: block !important; }
+    /* .tab-content.active { display: block !important; } */ /* No necesario si solo imprimimos #tab-summary */
+    
+    /* Solo imprimir el contenido de la pestaña de resumen */
+    .tab-content { display: none !important; }
+    #tab-summary { display: block !important; }
+
 
     /* Print table styles */
     table {
@@ -254,7 +307,8 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     }
     th, td {
         border: 1px solid #333 !important;
-        padding: 5px;
+        padding: 4px; /* Reducir padding */
+        font-size: 8pt; /* Reducir fuente */
         text-align: left;
         vertical-align: middle;
         word-break: break-word;
@@ -285,33 +339,33 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     /* Hide action column in print */
     th.action-cell, td.action-cell { display: none !important; }
 
-    /* Column widths for print */
+    /* Column widths for print (ajustados ligeramente) */
     thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 8%; } /* Fecha */
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; } /* Nombres */
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; } /* Placa */
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 7%; } /* Fecha */
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 12%; } /* Nombres */
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 8%; } /* Placa */
     thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; } /* Material */
     thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; } /* Cantera */
     thead th:nth-child(7), tbody td:nth-child(7) { width: 15%; } /* Proyecto */
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 20%; } /* Observaciones */
-    thead th:nth-child(9), tbody td:nth-child(9) { width: 4%; text-align: center; } /* Volumen */
-    thead th:nth-child(10), tbody td:nth-child(10) { width: 4%; text-align: center; } /* # Viajes */
-    thead th:nth-child(11), tbody td:nth-child(11) { width: 6%; text-align: center; font-weight: bold; } /* Vol. Total */
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 17%; } /* Observaciones */
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 5%; text-align: center; } /* Volumen */
+    thead th:nth-child(10), tbody td:nth-child(10) { width: 5%; text-align: center; } /* # Viajes */
+    thead th:nth-child(11), tbody td:nth-child(11) { width: 8%; text-align: center; font-weight: bold; } /* Vol. Total */
     
     /* Signature section for print */
     #signature-section {
         display: flex;
         justify-content: center;
-        margin-top: 40px;
+        margin-top: 30px; /* Reducir margen superior */
         page-break-inside: avoid;
     }
-    .signature-box { text-align: center; width: 350px; }
-    .signature-box p { margin: 4px 0; font-size: 11pt; }
+    .signature-box { text-align: center; width: 300px; /* Reducir ancho */}
+    .signature-box p { margin: 2px 0; font-size: 10pt; }
     .signature-line {
         border-top: 1px solid #333;
         width: 80%;
-        margin: 40px auto 8px auto;
-        padding-top: 5px;
+        margin: 30px auto 5px auto; /* Reducir margen */
+        padding-top: 3px;
     }
 }
 
