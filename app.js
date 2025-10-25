@@ -129,6 +129,10 @@ const cargarContenidoHTML = () => {
                 <select id="filtroCantera"><option value="">-- Todas --</option></select>
                 <label for="filtroProyecto">Proyecto:</label>
                 <select id="filtroProyecto"><option value="">-- Todos --</option></select>
+                <!-- AÑADIR ESTAS LÍNEAS -->
+                <label for="filtroChofer">Chofer:</label>
+                <select id="filtroChofer"><option value="">-- Todos --</option></select>
+                <!-- FIN DE LÍNEAS AÑADIDAS -->
                 <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                 <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
                 <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
@@ -243,9 +247,17 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         selectsToUpdate.forEach(sel => { 
             const currentValue = sel.value; // Guardar valor actual si existe
             sel.innerHTML = `<option value="">-- Todos --</option>`; // Opción por defecto para filtros
+            
+            // MODIFICACIÓN
             if (sel.id === 'selectMaterial' || sel.id === 'selectCantera' || sel.id === 'selectProyecto') {
                  sel.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`; // Opción por defecto para formulario
+            } else if (sel.id === 'selectNombres') {
+                 sel.innerHTML = `<option value="">1. Seleccionar Chofer</option>`;
+            } else if (sel.id === 'selectNombreAdmin') {
+                 sel.innerHTML = `<option value="">Seleccionar Chofer</option>`;
             }
+            // Para '#filtroChofer', se queda con "-- Todos --", lo cual es correcto.
+            
             items.forEach(item => sel.add(new Option(item.nombre, item.nombre)));
             sel.value = currentValue; // Restaurar valor
         });
@@ -492,7 +504,8 @@ const inicializarApp = async () => {
     const adminSections = {
         choferes: {
             html: `<div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>`,
-            loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin', '#selectNombres'], 'Nombre de Chofer')
+            // MODIFICAR ESTA LÍNEA
+            loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin', '#selectNombres', '#filtroChofer'], 'Nombre de Chofer')
         },
         vehiculos: {
             html: `<div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>`,
@@ -571,6 +584,8 @@ const inicializarApp = async () => {
         const material = document.getElementById('filtroMaterial').value;
         const cantera = document.getElementById('filtroCantera').value;
         const proyecto = document.getElementById('filtroProyecto').value;
+        // AÑADIR ESTA LÍNEA
+        const chofer = document.getElementById('filtroChofer').value;
         const filtroMes = document.getElementById('filtroMes').value;
         let filtrosUsados = [];
         if (filtroMes) {
@@ -588,6 +603,8 @@ const inicializarApp = async () => {
         if (material) { filtrosUsados.push(`<strong>Material:</strong> ${material}`); }
         if (cantera) { filtrosUsados.push(`<strong>Cantera:</strong> ${cantera}`); }
         if (proyecto) { filtrosUsados.push(`<strong>Proyecto:</strong> ${proyecto}`); }
+        // AÑADIR ESTA LÍNEA
+        if (chofer) { filtrosUsados.push(`<strong>Chofer:</strong> ${chofer}`); }
         const resumenContainer = document.getElementById('print-filter-summary');
         if (filtrosUsados.length > 0) {
             resumenContainer.innerHTML = '<i>Filtros Aplicados: &nbsp; ' + filtrosUsados.join(' &nbsp; | &nbsp; ') + '</i>';
@@ -634,12 +651,16 @@ const inicializarApp = async () => {
         const material = document.getElementById('filtroMaterial').value;
         const cantera = document.getElementById('filtroCantera').value;
         const proyecto = document.getElementById('filtroProyecto').value;
+        // AÑADIR ESTA LÍNEA
+        const chofer = document.getElementById('filtroChofer').value;
         let filtros = [];
         if (fechaInicio) filtros.push(where("fecha", ">=", fechaInicio));
         if (fechaFin) filtros.push(where("fecha", "<=", fechaFin));
         if (material) filtros.push(where("material", "==", material));
         if (cantera) filtros.push(where("cantera", "==", cantera));
         if (proyecto) filtros.push(where("proyecto", "==", proyecto));
+        // AÑADIR ESTA LÍNEA
+        if (chofer) filtros.push(where("nombres", "==", chofer));
         cargarRegistros(filtros);
     });
 
@@ -650,6 +671,8 @@ const inicializarApp = async () => {
         document.getElementById('filtroMaterial').selectedIndex = 0;
         document.getElementById('filtroCantera').selectedIndex = 0;
         document.getElementById('filtroProyecto').selectedIndex = 0;
+        // AÑADIR ESTA LÍNEA
+        document.getElementById('filtroChofer').selectedIndex = 0;
         cargarRegistros();
     });
 
@@ -858,4 +881,5 @@ const inicializarApp = async () => {
     await cargarRegistros();
     await cargarKPIs();
 };
+
 
