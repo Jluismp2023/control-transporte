@@ -150,7 +150,6 @@ const cargarContenidoHTML = () => {
         </div>
 
         <div class="card"> 
-            {/* COMENTARIO DEFINITIVAMENTE ELIMINADO */}
             <div class="print-only report-title">TRANSPORTE DE MATERIALES PETREOS</div> 
             <div id="print-filter-summary" class="print-only"></div> 
             <h2 class="no-print">Historial de Viajes</h2>
@@ -927,4 +926,3 @@ const inicializarApp = async () => {
     await cargarRegistros();
     await cargarKPIs();
 };
-
