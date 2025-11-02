@@ -352,7 +352,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     #signature-section {
         display: flex;
         justify-content: center;
-        margin-top: 30px; 
+        margin-top: 60px; /* MODIFICACIÓN: Aumentado para más separación */
         page-break-inside: avoid;
     }
     .signature-box { text-align: center; width: 300px; }
