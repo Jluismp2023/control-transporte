@@ -18,7 +18,14 @@ body {
     color: var(--color-texto);
     display: none; /* Initially hide body until auth check */
 }
-.main-container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+/* MODIFICACIÓN: Ocupar todo el ancho de la pantalla */
+.main-container { 
+    width: 100%; /* El contenedor ocupa el 100% del ancho */
+    max-width: none; /* Se elimina el límite de ancho */
+    margin: 20px 0; /* Margen superior/inferior, 0 a los lados */
+    padding: 0 20px; /* Padding horizontal para evitar que el contenido toque los bordes */
+    box-sizing: border-box;
+}
 .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
 #logo { height: 70px; margin-right: 15px; }
 
@@ -357,4 +364,3 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         padding-top: 3px;
     }
 }
-
