@@ -51,7 +51,6 @@ const cargarContenidoHTML = () => {
     // HTML para el Panel de Inicio
     document.getElementById('tab-inicio').innerHTML = `
         
-        <!-- Contenedor de Estadísticas (KPIs) -->
         <div class="kpi-container">
             <div class="kpi-card">
                 <h3>Volumen de Hoy (m³)</h3>
@@ -67,7 +66,6 @@ const cargarContenidoHTML = () => {
             </div>
         </div>
 
-        <!-- Contenedor de Accesos Directos -->
         <div class="card">
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
@@ -90,7 +88,6 @@ const cargarContenidoHTML = () => {
             <h2 id="formViajeTitulo">🚚 Nuevo Registro de Viaje</h2>
             <form id="transporteForm">
                 <input type="hidden" id="indiceEdicion">
-                <!-- FORMULARIO EN UNA COLUMNA -->
                 <select id="selectNombres" required><option value="">1. Seleccionar Chofer</option></select>
                 <select id="selectPlaca" required disabled><option value="">2. Seleccionar Placa</option></select>
                 <input type="number" id="volumen" placeholder="Volumen (m³)" step="0.01" readonly required>
@@ -137,7 +134,7 @@ const cargarContenidoHTML = () => {
                 <label for="filtroMaterial">Material:</label>
                 <select id="filtroMaterial"><option value="">-- Todos --</option></select>
                 <label for="filtroCantera">Cantera:</label>
-                <select id="filtroCantera"><option value="">-- Todas --</option></select>
+                <select id="filtroCantera"><option value="">-- Todos --</option></select>
                 <label for="filtroProyecto">Proyecto:</label>
                 <select id="filtroProyecto"><option value="">-- Todos --</option></select>
                 <label for="filtroChofer">Chofer:</label>
@@ -226,7 +223,7 @@ const renderizarRegistros = (registros) => {
     }
 };
 
-// Función genérica para administrar listas simples (Materiales, Canteras, Proyectos)
+// Función genérica para administrar listas simples (Materiales, Canteras, Proyectos, Nombres de Choferes)
 const administrarListaSimple = async (collectionName, formId, inputId, listaId, selectIds, nombreSingular) => {
     const form = document.getElementById(formId);
     const inputEl = document.getElementById(inputId);
@@ -240,6 +237,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         inputEl.value = ''; 
         submitBtn.textContent = 'Agregar'; 
         submitBtn.classList.remove('btn-success');
+        delete inputEl.dataset.nombreAntiguo; // Limpiar nombre antiguo
     };
     
     // Renderiza la lista
@@ -256,16 +254,18 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         const selectsToUpdate = Array.from(document.querySelectorAll(selectIds.join(','))).filter(el => el);
         selectsToUpdate.forEach(sel => { 
             const currentValue = sel.value; // Guardar valor actual si existe
-            sel.innerHTML = `<option value="">-- Todos --</option>`; // Opción por defecto para filtros
-            
-            if (sel.id === 'selectMaterial' || sel.id === 'selectCantera' || sel.id === 'selectProyecto') {
-                 sel.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`; // Opción por defecto para formulario
-            } else if (sel.id === 'selectNombres') {
+            // Si es un filtro, la primera opción es "Todos"
+            if (sel.id.startsWith('filtro')) {
+                sel.innerHTML = `<option value="">-- Todos --</option>`;
+            } else {
+                // Si es el formulario de registro/admin, la primera opción es de selección
+                sel.innerHTML = `<option value="">Seleccionar ${nombreSingular}</option>`;
+            }
+            if (sel.id === 'selectNombres') {
                  sel.innerHTML = `<option value="">1. Seleccionar Chofer</option>`;
             } else if (sel.id === 'selectNombreAdmin') {
                  sel.innerHTML = `<option value="">Seleccionar Chofer</option>`;
             }
-            // Para '#filtroChofer', se queda con "-- Todos --", lo cual es correcto.
             
             items.forEach(item => sel.add(new Option(item.nombre, item.nombre)));
             sel.value = currentValue; // Restaurar valor
@@ -289,15 +289,57 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         e.preventDefault();
         const nuevoValor = inputEl.value.trim();
         const idParaEditar = editIdInput.value;
+        const nombreAntiguo = inputEl.dataset.nombreAntiguo; // Recuperamos el nombre anterior
+        
         if (nuevoValor) {
             try {
                 if(idParaEditar) { 
+                    // --- LÓGICA DE ACTUALIZACIÓN MASIVA ---
                     await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); 
+                    
+                    if (nombreAntiguo && nombreAntiguo !== nuevoValor) {
+                        // 1. Determinar el campo de registro a actualizar (nombres, material, cantera, proyecto)
+                        let campoRegistro = '';
+                        if (collectionName === 'nombresDeChoferes') campoRegistro = 'nombres';
+                        if (collectionName === 'materiales') campoRegistro = 'material';
+                        if (collectionName === 'canteras') campoRegistro = 'cantera';
+                        if (collectionName === 'proyectos') campoRegistro = 'proyecto';
+
+                        if (campoRegistro) {
+                            // 2. Buscar todos los registros que tienen el nombre antiguo
+                            const qRegistros = query(collection(db, "registros"), where(campoRegistro, "==", nombreAntiguo));
+                            const snapshotRegistros = await getDocs(qRegistros);
+                            
+                            // 3. Actualizar todos los registros encontrados con el nuevo nombre
+                            const updates = snapshotRegistros.docs.map(docRegistro => {
+                                return updateDoc(doc(db, "registros", docRegistro.id), { [campoRegistro]: nuevoValor });
+                            });
+                            await Promise.all(updates);
+                            console.log(`[Actualización Masiva] Se actualizaron ${updates.length} registros en 'registros' para el campo ${campoRegistro}.`);
+                            
+                            // Si actualizamos el nombre de un chofer, también debemos actualizar el nombre en 'choferesVehiculos'
+                            if (collectionName === 'nombresDeChoferes') {
+                                const qVehiculos = query(collection(db, "choferesVehiculos"), where("nombre", "==", nombreAntiguo));
+                                const snapshotVehiculos = await getDocs(qVehiculos);
+                                
+                                const vehicleUpdates = snapshotVehiculos.docs.map(docVehiculo => {
+                                    return updateDoc(doc(db, "choferesVehiculos", docVehiculo.id), { nombre: nuevoValor });
+                                });
+                                await Promise.all(vehicleUpdates);
+                                console.log(`[Actualización Masiva] Se actualizaron ${vehicleUpdates.length} registros en 'choferesVehiculos'.`);
+                            }
+                        }
+                    }
+                    // --- FIN LÓGICA DE ACTUALIZACIÓN MASIVA ---
                 } else { 
                     await addDoc(collection(db, collectionName), { nombre: nuevoValor }); 
                 }
+                
                 resetForm(); 
+                // Después de la actualización masiva, recargar todo lo necesario
                 await render();
+                await cargarRegistros(); // Recargar tabla de reportes
+                
             } catch (error) {
                 console.error(`Error al guardar ${nombreSingular}:`, error);
                 alert(`Error al guardar ${nombreSingular}.`);
@@ -312,17 +354,21 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         const id = target.dataset.id;
         
         if (target.classList.contains('delete-btn')) {
-            if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}?`)) {
+            if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}? Ten en cuenta que los registros de viajes que usaban este nombre quedarán con un valor inconsistente.`)) {
                 try {
                     await deleteDoc(doc(db, collectionName, id));
                     await render();
+                    await cargarRegistros(); // Recargar tabla de reportes
                 } catch (error) {
                     console.error(`Error al borrar ${nombreSingular}:`, error);
                     alert(`Error al borrar ${nombreSingular}.`);
                 }
             }
         } else if (target.classList.contains('edit-btn')) {
-            inputEl.value = target.dataset.nombre;
+            // Guardar el nombre actual en un atributo para usarlo en la actualización masiva
+            const nombreActual = target.dataset.nombre;
+            inputEl.value = nombreActual;
+            inputEl.dataset.nombreAntiguo = nombreActual;
             editIdInput.value = id;
             submitBtn.textContent = 'Guardar';
             submitBtn.classList.add('btn-success');
@@ -404,6 +450,7 @@ const administrarChoferesVehiculos = async () => {
             }
             resetForm(); 
             await render();
+            await cargarRegistros(); // Recargar la tabla de reportes por si el volumen cambió
         } catch (error) {
             console.error("Error al asignar vehículo:", error);
             alert("Error al asignar vehículo.");
@@ -555,7 +602,7 @@ const inicializarApp = async () => {
     const adminSections = {
         choferes: {
             html: `<div class="card"><h2>👤 Nombres de Choferes</h2><form id="nombreChoferForm"><input type="hidden" class="edit-id"><input type="text" id="nuevoNombreChofer" placeholder="Nombre y Apellido" required><button type="submit" class="btn-primary">Agregar</button></form><ul id="nombresChoferesLista"></ul></div>`,
-            loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin', '#selectNombres', '#filtroChofer'], 'Nombre de Chofer')
+            loader: () => administrarListaSimple('nombresDeChoferes', 'nombreChoferForm', 'nuevoNombreChofer', 'nombresChoferesLista', ['#selectNombreAdmin', '#selectNombres', '#filtroChofer'], 'Chofer')
         },
         vehiculos: {
             html: `<div class="card"><h2>🚛 Asignar Vehículo</h2><form id="choferVehiculoForm"><input type="hidden" class="edit-id"><select id="selectNombreAdmin" required><option value="">Seleccionar Chofer</option></select><input type="text" id="nuevaPlaca" placeholder="Placa" required><input type="number" id="nuevoVolumen" placeholder="Volumen (m³)" step="0.01" required><button type="submit" class="btn-primary">Asignar</button></form><ul id="choferesVehiculosLista"></ul></div>`,
@@ -745,20 +792,22 @@ const inicializarApp = async () => {
     
     // Cargar selects del formulario de registro
     // Nota: La carga de "selectNombres" se hace desde administrarListaSimple('nombresDeChoferes'...)
-    poblarSelects('materiales', 'selectMaterial');
-    poblarSelects('canteras', 'selectCantera');
-    poblarSelects('proyectos', 'selectProyecto');
+    poblarSelects('materiales', 'selectMaterial', 'Seleccionar Material');
+    poblarSelects('canteras', 'selectCantera', 'Seleccionar Cantera');
+    poblarSelects('proyectos', 'selectProyecto', 'Seleccionar Proyecto');
     
     // Cargar selects de los filtros de reportes
-    poblarSelects('materiales', 'filtroMaterial');
-    poblarSelects('canteras', 'filtroCantera');
-    poblarSelects('proyectos', 'filtroProyecto');
+    poblarSelects('materiales', 'filtroMaterial', '-- Todos --');
+    poblarSelects('canteras', 'filtroCantera', '-- Todos --');
+    poblarSelects('proyectos', 'filtroProyecto', '-- Todos --');
     // Nota: "filtroChofer" se puebla desde administrarListaSimple('nombresDeChoferes'...)
 
     // Función helper para poblar selects (usada arriba)
-    async function poblarSelects(collectionName, selectId) {
+    async function poblarSelects(collectionName, selectId, defaultOptionText) {
         try {
             const selectEl = document.getElementById(selectId);
+            // Asegura que solo tiene la opción por defecto antes de cargar
+            selectEl.innerHTML = `<option value="">${defaultOptionText}</option>`; 
             const q = query(collection(db, collectionName));
             const snapshot = await getDocs(q);
             snapshot.forEach(doc => selectEl.add(new Option(doc.data().nombre, doc.data().nombre)));
@@ -769,7 +818,7 @@ const inicializarApp = async () => {
 
     selectPlaca.addEventListener('change', () => {
         const selectedOption = selectPlaca.options[selectPlaca.selectedIndex];
-        volumenInput.value = selectedOption.dataset.volumen || '';
+        volumenInput.value = selectedOption ? selectedOption.dataset.volumen || '' : '';
     });
 
     const cancelarEdicion = () => {
