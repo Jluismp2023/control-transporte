@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transporte de Materiales v49.0</title>
+    <title>Transporte de Materiales v50.0</title>
+    
     <link rel="icon" type="image/png" href="logo.png">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     
-    <!-- CSS Externo -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="main-container">
-    <!-- --- NUEVO: Encabezado solo para impresión --- -->
     <div class="print-header print-only">
         <img src="logo.jpg" alt="Logo OBRECO">
         <div class="print-header-titles">
@@ -24,38 +25,29 @@
             <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
         </div>
     </div>
-    <!-- --- Fin Encabezado de Impresión --- -->
-
-    <div class="header-container no-print"> <!-- Añadido no-print aquí -->
-        <img id="logo" src="logo.jpg" alt="Logo de la Empresa">
+    <div class="header-container no-print"> <img id="logo" src="logo.jpg" alt="Logo de la Empresa">
         <div class="title-container">
             <h1>OBRAS EQUIPOS Y CONSTRUCCIONES<br>OBRECO CIA LTDA</h1>
             <h2>TRANSPORTE DE MATERIALES PETREOS</h2>
         </div>
-        <button id="btnLogout" class="btn-secondary" style="margin-left: auto;">Cerrar Sesión</button>
+        <button id="btnLogout" class="btn-secondary">Cerrar Sesión</button>
     </div>
 
-    <!-- Pestañas ocultas (los divs siguen aquí para la lógica JS) -->
     <div class="tabs no-print">
         <button class="tab-button active" data-tab="tab-inicio">🏠 Inicio</button>
         <button class="tab-button" data-tab="tab-registro">🚚 Registro</button>
-        <button class="tab-button" data-tab="tab-admin">⚙️ Administración</button>
+        <button class="tab-button" data-tab="tab-admin">⚙️ BD</button>
         <button class="tab-button" data-tab="tab-summary">📊 Reportes</button>
-    </div>
+        <button class="tab-button" data-tab="tab-analytics">📈 Análisis</button> </div>
 
-    <!-- Contenido de las secciones -->
     <div id="tab-inicio" class="tab-content active"></div>
     <div id="tab-registro" class="tab-content no-print"></div>
     <div id="tab-admin" class="tab-content no-print"></div>
     <div id="tab-summary" class="tab-content"></div>
-    
-    <!-- Firma para impresión -->
-    <div id="signature-section" class="print-only"></div> <!-- Añadido print-only -->
+    <div id="tab-analytics" class="tab-content"></div> <div id="signature-section" class="print-only"></div>
 
 </div>
 
-<!-- JS Externo -->
 <script type="module" src="app.js"></script>
 </body>
 </html>
-

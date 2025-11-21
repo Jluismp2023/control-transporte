@@ -50,7 +50,7 @@ onAuthStateChanged(auth, (user) => {
 
 
 // =========================================================================
-// FUNCIONES GLOBALES (renderizarRegistros y cargarRegistros)
+// FUNCIONES GLOBALES DE MANEJO DE DATOS
 // =========================================================================
 
 // Función para renderizar los registros en la tabla
@@ -130,6 +130,98 @@ const cargarRegistros = async (filtros = []) => {
     }
 };
 
+// Función para calcular y mostrar el resumen analítico (NUEVA)
+const cargarResumenAnalitico = async () => {
+    const errorEl = document.getElementById('analitics-error');
+    errorEl.textContent = 'Cargando datos analíticos...';
+
+    const tablaProyectos = document.getElementById('tablaProyectos');
+    const tablaMateriales = document.getElementById('tablaMateriales');
+    const tablaChoferes = document.getElementById('tablaChoferes');
+    
+    // Inicializar tablas con mensaje de carga
+    const generarCarga = (titulo) => `<thead><tr><th>${titulo}</th><th>Volumen Total (m³)</th><th># Viajes</th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>`;
+    tablaProyectos.innerHTML = generarCarga("Proyecto");
+    tablaMateriales.innerHTML = generarCarga("Material");
+    tablaChoferes.innerHTML = generarCarga("Chofer");
+    
+    try {
+        const q = query(collection(db, "registros"));
+        const snapshot = await getDocs(q);
+        const registros = snapshot.docs.map(doc => doc.data());
+        
+        if (registros.length === 0) {
+            errorEl.textContent = 'No hay registros de viajes para analizar.';
+            tablaProyectos.innerHTML = generarCarga("Proyecto").replace('Cargando...', 'Sin datos');
+            tablaMateriales.innerHTML = generarCarga("Material").replace('Cargando...', 'Sin datos');
+            tablaChoferes.innerHTML = generarCarga("Chofer").replace('Cargando...', 'Sin datos');
+            return;
+        }
+
+        const agruparYRenderizar = (data, campoAgrupacion, tablaElemento, tituloColumna) => {
+            const resumen = data.reduce((acc, registro) => {
+                const key = registro[campoAgrupacion] || 'SIN ESPECIFICAR';
+                const volumen = parseFloat(registro.volumen) || 0;
+                const numViajes = parseInt(registro.numViajes) || 0;
+                const volumenTotal = volumen * numViajes;
+
+                if (!acc[key]) {
+                    acc[key] = { volumen: 0, viajes: 0 };
+                }
+                acc[key].volumen += volumenTotal;
+                acc[key].viajes += numViajes;
+                return acc;
+            }, {});
+
+            let html = `<thead><tr><th>${tituloColumna}</th><th>Volumen Total (m³)</th><th># Viajes</th></tr></thead><tbody>`;
+            
+            // Ordenar por volumen total descendente
+            const itemsOrdenados = Object.entries(resumen)
+                .sort(([, a], [, b]) => b.volumen - a.volumen);
+            
+            itemsOrdenados.forEach(([key, value]) => {
+                html += `
+                    <tr>
+                        <td>${key}</td>
+                        <td style="text-align:right;">${value.volumen.toFixed(2)}</td>
+                        <td style="text-align:center;">${value.viajes}</td>
+                    </tr>
+                `;
+            });
+
+            // Fila de totales
+            const totalVolumenGlobal = itemsOrdenados.reduce((sum, [, v]) => sum + v.volumen, 0);
+            const totalViajesGlobal = itemsOrdenados.reduce((sum, [, v]) => sum + v.viajes, 0);
+
+            html += `
+                <tr class="analitics-total">
+                    <td><strong>TOTAL GENERAL</strong></td>
+                    <td style="text-align:right;"><strong>${totalVolumenGlobal.toFixed(2)}</strong></td>
+                    <td style="text-align:center;"><strong>${totalViajesGlobal}</strong></td>
+                </tr>
+            `;
+
+            html += `</tbody>`;
+            tablaElemento.innerHTML = html;
+        };
+
+        // 1. Por Proyecto
+        agruparYRenderizar(registros, 'proyecto', tablaProyectos, 'Proyecto');
+
+        // 2. Por Material
+        agruparYRenderizar(registros, 'material', tablaMateriales, 'Material');
+
+        // 3. Por Chofer
+        agruparYRenderizar(registros, 'nombres', tablaChoferes, 'Chofer');
+        
+        errorEl.textContent = ''; // Limpiar mensaje de carga/error
+
+    } catch (error) {
+        console.error("Error al cargar resumen analítico:", error);
+        errorEl.textContent = 'Error al cargar los datos analíticos. Revise la consola para detalles.';
+    }
+};
+
 
 // Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO y Botón Excel ELIMINADO)
 const cargarContenidoHTML = () => {
@@ -158,6 +250,9 @@ const cargarContenidoHTML = () => {
                 </button>
                 <button class="quick-link-btn" data-tab="tab-admin">
                     <span>⚙️</span> BD
+                </button>
+                <button class="quick-link-btn" data-tab="tab-analytics">
+                    <span>📈</span> Análisis
                 </button>
             </div>
         </div>
@@ -225,21 +320,38 @@ const cargarContenidoHTML = () => {
                 <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
                 <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
             </div>
-        </div>
-
-        <div class="card"> 
-            <div class="print-only report-title">TRANSPORTE DE MATERIALES PETREOS</div> 
-            <div id="print-filter-summary" class="print-only"></div> 
-            <h2 class="no-print">Historial de Viajes</h2>
-            <div style="overflow-x:auto;">
-                <table id="registrosTabla">
-                    <thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Observaciones</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead>
-                    <tbody id="registrosBody"></tbody>
-                    <tfoot id="registrosTfoot"></tfoot>
-                </table>
-            </div>
         </div>`;
     
+    // --- NUEVO HTML PARA ANÁLISIS ---
+    document.getElementById('tab-analytics').innerHTML = `
+        <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
+        <div class="card">
+            <h2>📈 Resumen Analítico de Transporte</h2>
+            <p>Muestra el volumen total ($\text{m}^3$) y el número de viajes por categorías.</p>
+            <div class="analitics-container">
+                <div class="analitics-section">
+                    <h3>🏁 Por Proyecto</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="analitics-table" id="tablaProyectos"></table>
+                    </div>
+                </div>
+                <div class="analitics-section">
+                    <h3>💎 Por Material</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="analitics-table" id="tablaMateriales"></table>
+                    </div>
+                </div>
+                <div class="analitics-section">
+                    <h3>👤 Por Chofer</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="analitics-table" id="tablaChoferes"></table>
+                    </div>
+                </div>
+            </div>
+            <p id="analitics-error" class="error-message"></p>
+        </div>
+    `;
+
     // HTML para la firma (sección de impresión)
     document.getElementById('signature-section').innerHTML = `<div class="signature-box"><div class="signature-line"></div><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
 };
@@ -360,6 +472,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 // Después de la actualización masiva, recargar todo lo necesario
                 await render();
                 await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de editar/agregar
+                await cargarResumenAnalitico(); // NUEVO: Recargar resumen analítico
                 
             } catch (error) {
                 console.error(`Error al guardar ${nombreSingular}:`, error);
@@ -380,6 +493,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                     await deleteDoc(doc(db, collectionName, id));
                     await render();
                     await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de borrar
+                    await cargarResumenAnalitico(); // NUEVO: Recargar resumen analítico
                 } catch (error) {
                     console.error(`Error al borrar ${nombreSingular}:`, error);
                     alert(`Error al borrar ${nombreSingular}.`);
@@ -472,6 +586,7 @@ const administrarChoferesVehiculos = async () => {
             resetForm(); 
             await render();
             await cargarRegistros(); // Recargar la tabla de reportes por si el volumen cambió
+            await cargarResumenAnalitico(); // NUEVO: Recargar resumen analítico
         } catch (error) {
             console.error("Error al asignar vehículo:", error);
             alert("Error al asignar vehículo.");
@@ -664,6 +779,10 @@ const inicializarApp = async () => {
             // Si volvemos al inicio, recargar KPIs
             if (tab.dataset.tab === 'tab-inicio') {
                 cargarKPIs();
+            }
+            // Si vamos a Análisis, cargar el resumen
+            if (tab.dataset.tab === 'tab-analytics') {
+                cargarResumenAnalitico();
             }
         });
     });
@@ -941,6 +1060,7 @@ const inicializarApp = async () => {
             
             await cargarRegistros(); // Recargar tabla
             await cargarKPIs(); // Recargar estadísticas
+            await cargarResumenAnalitico(); // Recargar resumen analítico
             cancelarEdicion();
             
             // Volver al panel de inicio después de guardar
@@ -984,4 +1104,5 @@ const inicializarApp = async () => {
     // 15. Carga inicial de datos
     await cargarRegistros();
     await cargarKPIs();
+    await cargarResumenAnalitico();
 };

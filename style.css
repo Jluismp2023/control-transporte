@@ -254,6 +254,56 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     font-size: 2.5em;
 }
 
+/* --- Estilos para la nueva pestaña de Análisis --- */
+.analitics-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.analitics-section {
+    padding: 15px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background-color: #fcfcfc;
+}
+
+.analitics-section h3 {
+    font-size: 1.4em;
+    color: var(--color-secundario);
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+    margin-top: 0;
+}
+
+.analitics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.analitics-table thead th {
+    background-color: var(--color-primario);
+    color: var(--color-blanco);
+    padding: 8px;
+    font-size: 0.9em;
+    text-align: left;
+    border: none;
+}
+
+.analitics-table tbody td {
+    padding: 8px;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.95em;
+}
+
+.analitics-total td {
+    background-color: #eef;
+    font-weight: bold;
+    border-top: 2px solid var(--color-primario) !important;
+}
+
+
 /* --- Media Query para dispositivos móviles (< 768px) --- */
 @media (max-width: 768px) {
     .main-container { 
@@ -430,6 +480,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     /* Solo imprimir el contenido de la pestaña de resumen */
     .tab-content { display: none !important; }
     #tab-summary { display: block !important; }
+    #tab-analytics { display: block !important; } /* Permitir imprimir resumen analítico */
 
     /* Print table styles */
     table {
