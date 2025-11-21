@@ -15,6 +15,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Variable global para almacenar los registros filtrados (para exportar)
+let registrosFiltrados = [];
+
 // Función helper para obtener la fecha de hoy en formato YYYY-MM-DD
 const getTodayDate = () => new Date().toISOString().slice(0, 10);
 
@@ -44,6 +47,93 @@ onAuthStateChanged(auth, (user) => {
         inicializarApp();
     }
 });
+
+
+// =========================================================================
+// CORRECCIÓN CLAVE: Mover cargarRegistros y renderizarRegistros al ámbito global
+// para que puedan ser llamadas por administrarListaSimple sin ReferenceError
+// =========================================================================
+
+// Función para renderizar los registros en la tabla
+const renderizarRegistros = (registros) => {
+    registrosFiltrados = registros; 
+
+    const registrosBody = document.getElementById('registrosBody');
+    const registrosTfoot = document.getElementById('registrosTfoot');
+
+    // Ordenar por fecha descendente
+    registros.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    registrosBody.innerHTML = '';
+    registrosTfoot.innerHTML = '';
+
+    if (registros.length === 0) {
+        registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
+        return;
+    }
+    
+    let totalViajes = 0;
+    let totalVolumen = 0;
+    
+    registros.forEach((registro, index) => {
+        const fila = document.createElement('tr');
+        const volumen = parseFloat(registro.volumen) || 0;
+        const numViajes = parseInt(registro.numViajes) || 0;
+        const volumenTotal = (volumen * numViajes);
+        totalViajes += numViajes;
+        totalVolumen += volumenTotal;
+        fila.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${registro.fecha}</td>
+            <td>${registro.nombres}</td>
+            <td>${registro.placa}</td>
+            <td>${registro.material || ''}</td>
+            <td>${registro.cantera || ''}</td>
+            <td>${registro.proyecto || ''}</td>
+            <td>${registro.observaciones || ''}</td>
+            <td>${volumen.toFixed(2)}</td>
+            <td>${numViajes}</td>
+            <td><b>${volumenTotal.toFixed(2)}</b></td>
+            <td class="action-cell">
+                <button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button>
+                <button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button>
+            </td>`;
+        registrosBody.appendChild(fila);
+    });
+    
+    if (registros.length > 0) {
+        const pieDeTabla = document.createElement('tr');
+        pieDeTabla.innerHTML = `
+            <td colspan="9" style="text-align: right;"><strong>TOTALES:</strong></td>
+            <td><strong>${totalViajes}</strong></td>
+            <td><strong>${totalVolumen.toFixed(2)}</strong></td>
+            <td class="action-cell"></td>`;
+        registrosTfoot.appendChild(pieDeTabla);
+    }
+};
+
+// Función para cargar registros en la tabla de reportes
+const cargarRegistros = async (filtros = []) => {
+    const registrosBody = document.getElementById('registrosBody');
+    registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Cargando registros...</td></tr>`;
+    document.getElementById('registrosTfoot').innerHTML = '';
+
+    let q = query(collection(db, "registros"));
+    if (filtros.length > 0) { 
+        q = query(collection(db, "registros"), ...filtros); 
+    }
+    try {
+        const snapshot = await getDocs(q);
+        const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        renderizarRegistros(registrosData);
+    } catch (error) {
+        console.error("Error al cargar registros:", error);
+        registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px; color: var(--color-error);">Error al cargar registros.</td></tr>`;
+    }
+};
+
+// =========================================================================
+// CONTINUACIÓN DEL CÓDIGO 
+// =========================================================================
 
 // Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO)
 const cargarContenidoHTML = () => {
@@ -157,66 +247,6 @@ const cargarContenidoHTML = () => {
     
     // HTML para la firma (sección de impresión)
     document.getElementById('signature-section').innerHTML = `<div class="signature-box"><div class="signature-line"></div><p>Ing. Jose L. Macas P.</p><p>Residente de Obra</p></div>`;
-};
-
-// Variable global para almacenar los registros filtrados (para exportar)
-let registrosFiltrados = [];
-
-// Función para renderizar los registros en la tabla
-const renderizarRegistros = (registros) => {
-    registrosFiltrados = registros; 
-
-    const registrosBody = document.getElementById('registrosBody');
-    const registrosTfoot = document.getElementById('registrosTfoot');
-
-    // Ordenar por fecha descendente
-    registros.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    registrosBody.innerHTML = '';
-    registrosTfoot.innerHTML = '';
-
-    if (registros.length === 0) {
-        registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">No se encontraron registros.</td></tr>`;
-        return;
-    }
-    
-    let totalViajes = 0;
-    let totalVolumen = 0;
-    
-    registros.forEach((registro, index) => {
-        const fila = document.createElement('tr');
-        const volumen = parseFloat(registro.volumen) || 0;
-        const numViajes = parseInt(registro.numViajes) || 0;
-        const volumenTotal = (volumen * numViajes);
-        totalViajes += numViajes;
-        totalVolumen += volumenTotal;
-        fila.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${registro.fecha}</td>
-            <td>${registro.nombres}</td>
-            <td>${registro.placa}</td>
-            <td>${registro.material || ''}</td>
-            <td>${registro.cantera || ''}</td>
-            <td>${registro.proyecto || ''}</td>
-            <td>${registro.observaciones || ''}</td>
-            <td>${volumen.toFixed(2)}</td>
-            <td>${numViajes}</td>
-            <td><b>${volumenTotal.toFixed(2)}</b></td>
-            <td class="action-cell">
-                <button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button>
-                <button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button>
-            </td>`;
-        registrosBody.appendChild(fila);
-    });
-    
-    if (registros.length > 0) {
-        const pieDeTabla = document.createElement('tr');
-        pieDeTabla.innerHTML = `
-            <td colspan="9" style="text-align: right;"><strong>TOTALES:</strong></td>
-            <td><strong>${totalViajes}</strong></td>
-            <td><strong>${totalVolumen.toFixed(2)}</strong></td>
-            <td class="action-cell"></td>`;
-        registrosTfoot.appendChild(pieDeTabla);
-    }
 };
 
 // Función genérica para administrar listas simples (Materiales, Canteras, Proyectos, Nombres de Choferes)
@@ -623,26 +653,6 @@ const inicializarApp = async () => {
     adminSidebarButtons.forEach(button => button.addEventListener('click', () => showAdminSection(button.dataset.section)));
     showAdminSection('choferes'); // Mostrar la primera sección por defecto
 
-    // 7. Función para cargar registros en la tabla de reportes
-    const cargarRegistros = async (filtros = []) => {
-        const registrosBody = document.getElementById('registrosBody');
-        registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Cargando registros...</td></tr>`;
-        document.getElementById('registrosTfoot').innerHTML = '';
-
-        let q = query(collection(db, "registros"));
-        if (filtros.length > 0) { 
-            q = query(collection(db, "registros"), ...filtros); 
-        }
-        try {
-            const snapshot = await getDocs(q);
-            const registrosData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            renderizarRegistros(registrosData);
-        } catch (error) {
-            console.error("Error al cargar registros:", error);
-            registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px; color: var(--color-error);">Error al cargar registros.</td></tr>`;
-        }
-    };
-    
     // 8. Lógica para manejar el "clic" en las pestañas (ocultas)
     // Esto es lo que permite que los Accesos Directos funcionen
     const allTabs = document.querySelectorAll('.tab-button');
