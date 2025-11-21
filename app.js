@@ -36,6 +36,25 @@ const formatDate = (date) => {
     return [year, month, day].join('-');
 }
 
+// =========================================================================
+// NUEVA LÓGICA DE ROLES
+// =========================================================================
+
+// Configuración de roles (Se puede expandir con claims de Firebase si la aplicación crece)
+const ADMIN_EMAILS = ['admin@obreco.com', 'otroadmin@obreco.com']; // Ejemplo de administradores
+const OBSERVER_EMAIL = 'obreco@observador.com';
+
+const getUserRole = (user) => {
+    if (!user) return 'guest';
+    if (ADMIN_EMAILS.includes(user.email)) return 'admin';
+    if (user.email === OBSERVER_EMAIL) return 'observer';
+    return 'user';
+};
+
+// =========================================================================
+// FIN LÓGICA DE ROLES
+// =========================================================================
+
 // Comprobar estado de autenticación
 onAuthStateChanged(auth, (user) => {
     if (!user) {
@@ -44,7 +63,7 @@ onAuthStateChanged(auth, (user) => {
     } else {
         // Si hay usuario, mostrar la app e inicializar
         document.body.style.display = 'block';
-        inicializarApp();
+        inicializarApp(user);
     }
 });
 
@@ -59,6 +78,7 @@ const renderizarRegistros = (registros) => {
 
     const registrosBody = document.getElementById('registrosBody');
     const registrosTfoot = document.getElementById('registrosTfoot');
+    const userRole = getUserRole(auth.currentUser); // Obtener rol para ocultar/mostrar acciones
 
     // Ordenar por fecha descendente
     registros.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -93,12 +113,24 @@ const renderizarRegistros = (registros) => {
             <td>${numViajes}</td>
             <td><b>${volumenTotal.toFixed(2)}</b></td>
             <td class="action-cell">
-                <button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button>
-                <button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button>
+                ${userRole !== 'observer' ? `<button title="Modificar" class="action-btn edit-btn" data-id="${registro.id}">✏️</button>
+                <button title="Borrar" class="action-btn delete-btn" data-id="${registro.id}">🗑️</button>` : ''}
             </td>`;
         registrosBody.appendChild(fila);
     });
     
+    // Ocultar la columna de acciones si el usuario es observador
+    const tabla = document.getElementById('registrosTabla');
+    if (tabla) {
+        const accionesHeader = tabla.querySelector('th:last-child');
+        if (accionesHeader && userRole === 'observer') {
+            accionesHeader.classList.add('no-print');
+        } else if (accionesHeader) {
+            accionesHeader.classList.remove('no-print');
+        }
+    }
+
+
     if (registros.length > 0) {
         const pieDeTabla = document.createElement('tr');
         pieDeTabla.innerHTML = `
@@ -320,6 +352,10 @@ const cargarResumenAnalitico = async (filtrosAnaliticos = []) => {
 // Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO y Botón Excel ELIMINADO)
 const cargarContenidoHTML = () => {
     
+    // Obtener rol actual para decidir qué contenido cargar
+    const userRole = getUserRole(auth.currentUser);
+    const isAdmin = userRole !== 'observer'; // Sólo el observador debe tener restricciones en BD
+
     // HTML para el Panel de Inicio (Solo Volumen Semanal y Mensual)
     document.getElementById('tab-inicio').innerHTML = `
         
@@ -342,9 +378,10 @@ const cargarContenidoHTML = () => {
                 <button class="quick-link-btn" data-tab="tab-summary">
                     <span>📊</span> Reportes
                 </button>
+                ${isAdmin ? `
                 <button class="quick-link-btn" data-tab="tab-admin">
                     <span>⚙️</span> BD
-                </button>
+                </button>` : ''}
                 <button class="quick-link-btn" data-tab="tab-analytics">
                     <span>📈</span> Análisis
                 </button>
@@ -377,7 +414,7 @@ const cargarContenidoHTML = () => {
             </form>
         </div>`;
     
-    // HTML para la sección de Administración (con botón "Volver")
+    // HTML para la sección de Administración (Oculta para Observador)
     document.getElementById('tab-admin').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         <div class="admin-container">
@@ -579,7 +616,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 resetForm(); 
                 // Después de la actualización masiva, recargar todo lo necesario
                 await render();
-                await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de editar/agregar
+                await cargarRegistros(); // Recargar tabla de reportes después de editar/agregar
                 await cargarResumenAnalitico(); // NUEVO: Recargar resumen analítico
                 
             } catch (error) {
@@ -808,7 +845,7 @@ const cargarKPIs = async () => {
 };
 
 // Función principal de inicialización de la app
-const inicializarApp = async () => {
+const inicializarApp = async (user) => {
     // 1. Cargar todo el HTML de las secciones
     cargarContenidoHTML();
 
@@ -834,6 +871,23 @@ const inicializarApp = async () => {
     const filtroMes = document.getElementById('filtroMes');
     const fechaInicio = document.getElementById('fechaInicio');
     const fechaFin = document.getElementById('fechaFin');
+
+    // Ocultar botón BD y secciones de administración si es Observador
+    const userRole = getUserRole(user);
+    if (userRole === 'observer') {
+        const bdButton = document.querySelector('.quick-link-btn[data-tab="tab-admin"]');
+        if (bdButton) bdButton.remove();
+        
+        // Deshabilitar formulario de Registro para observadores
+        if (transporteForm) {
+            Array.from(transporteForm.elements).forEach(element => {
+                element.disabled = true;
+            });
+            if (btnSubmitViaje) btnSubmitViaje.textContent = "Acceso Denegado (Observador)";
+            if (btnSubmitViaje) btnSubmitViaje.disabled = true;
+            document.getElementById('formViajeError').textContent = "Acceso de solo lectura. No se permite ingresar ni modificar datos.";
+        }
+    }
 
 
     // 5. Definir las secciones de Administración
@@ -915,6 +969,7 @@ const inicializarApp = async () => {
         if (chofer) filtros.push(where("nombres", "==", chofer));
         return filtros;
     };
+
 
     // 9. Lógica para los filtros de Reportes
     document.getElementById('btnPrint').addEventListener('click', () => {
@@ -1090,6 +1145,12 @@ const inicializarApp = async () => {
 
     // 11. Lógica de la tabla de Reportes (Editar/Borrar)
     document.getElementById('registrosBody').addEventListener('click', async e => {
+        // Bloquear edición/eliminación para observadores
+        if (getUserRole(auth.currentUser) === 'observer') {
+            alert("Acceso denegado. Los usuarios observadores no pueden modificar datos.");
+            return;
+        }
+
         const target = e.target.closest('button');
         if (!target) return;
         const docId = target.dataset.id;
@@ -1148,7 +1209,14 @@ const inicializarApp = async () => {
     // 12. Lógica para Enviar Formulario de Registro
     transporteForm.addEventListener('submit', async e => {
         e.preventDefault();
-        formViajeError.textContent = '';
+        
+        // Bloquear envío para observadores
+        if (getUserRole(auth.currentUser) === 'observer') {
+            document.getElementById('formViajeError').textContent = 'Acceso denegado. Los usuarios observadores no pueden ingresar datos.';
+            return;
+        }
+
+        document.getElementById('formViajeError').textContent = '';
         
         const btn = btnSubmitViaje;
         const originalText = btn.textContent;
@@ -1171,7 +1239,7 @@ const inicializarApp = async () => {
             
             // Validación mejorada
             if (!registro.nombres || !registro.placa || !registro.material || !registro.fecha || !registro.volumen || !registro.numViajes || !registro.cantera || !registro.proyecto) {
-                formViajeError.textContent = 'Por favor, complete todos los campos requeridos.';
+                document.getElementById('formViajeError').textContent = 'Por favor, complete todos los campos requeridos.';
                 btn.disabled = false;
                 btn.textContent = originalText;
                 return;
@@ -1193,7 +1261,7 @@ const inicializarApp = async () => {
             
         } catch (error) {
             console.error("Error al guardar el registro:", error);
-            formViajeError.textContent = 'Hubo un error al guardar el registro.';
+            document.getElementById('formViajeError').textContent = 'Hubo un error al guardar el registro.';
         } finally {
             btn.disabled = false;
             if (!indiceEdicionInput.value) {
