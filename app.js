@@ -582,6 +582,11 @@ const inicializarApp = async () => {
     
     const adminContent = document.getElementById('admin-content');
     const adminSidebarButtons = document.querySelectorAll('.admin-sidebar button');
+    
+    const filtroMes = document.getElementById('filtroMes');
+    const fechaInicio = document.getElementById('fechaInicio');
+    const fechaFin = document.getElementById('fechaFin');
+
 
     // 5. Definir las secciones de Administración
     const adminSections = {
@@ -660,24 +665,24 @@ const inicializarApp = async () => {
 
     // 9. Lógica para los filtros de Reportes
     document.getElementById('btnPrint').addEventListener('click', () => {
-        const fechaInicio = document.getElementById('fechaInicio').value;
-        const fechaFin = document.getElementById('fechaFin').value;
+        const fechaInicioVal = fechaInicio.value;
+        const fechaFinVal = fechaFin.value;
         const material = document.getElementById('filtroMaterial').value;
         const cantera = document.getElementById('filtroCantera').value;
         const proyecto = document.getElementById('filtroProyecto').value;
         const chofer = document.getElementById('filtroChofer').value;
-        const filtroMes = document.getElementById('filtroMes').value;
+        const filtroMesVal = filtroMes.value;
         let filtrosUsados = [];
-        if (filtroMes) {
-            const [year, month] = filtroMes.split('-');
+        if (filtroMesVal) {
+            const [year, month] = filtroMesVal.split('-');
             filtrosUsados.push(`<strong>Mes:</strong> ${month}/${year}`);
-        } else if (fechaInicio || fechaFin) {
-            if (fechaInicio && fechaFin) {
-                filtrosUsados.push(`<strong>Fechas:</strong> ${fechaInicio} al ${fechaFin}`);
-            } else if (fechaInicio) {
-                filtrosUsados.push(`<strong>Desde:</strong> ${fechaInicio}`);
-            } else if (fechaFin) {
-                filtrosUsados.push(`<strong>Hasta:</strong> ${fechaFin}`);
+        } else if (fechaInicioVal || fechaFinVal) {
+            if (fechaInicioVal && fechaFinVal) {
+                filtrosUsados.push(`<strong>Fechas:</strong> ${fechaInicioVal} al ${fechaFinVal}`);
+            } else if (fechaInicioVal) {
+                filtrosUsados.push(`<strong>Desde:</strong> ${fechaInicioVal}`);
+            } else if (fechaFinVal) {
+                filtrosUsados.push(`<strong>Hasta:</strong> ${fechaFinVal}`);
             }
         }
         if (material) { filtrosUsados.push(`<strong>Material:</strong> ${material}`); }
@@ -709,31 +714,58 @@ const inicializarApp = async () => {
         XLSX.writeFile(libro, nombreArchivo);
     });
 
-    document.getElementById('filtroMes').addEventListener('change', () => {
-        const mesSeleccionado = document.getElementById('filtroMes').value;
+    // --- LÓGICA DE FILTROS DE FECHA EXCLUYENTE ---
+    filtroMes.addEventListener('change', () => {
+        const mesSeleccionado = filtroMes.value;
         if (!mesSeleccionado) {
-            document.getElementById('fechaInicio').value = '';
-            document.getElementById('fechaFin').value = '';
+            fechaInicio.value = '';
+            fechaFin.value = '';
+            fechaInicio.disabled = false; // Habilitar fechas
+            fechaFin.disabled = false;
             return;
         }
+        
         const [year, month] = mesSeleccionado.split('-').map(Number);
         const primerDia = new Date(year, month - 1, 1);
         const ultimoDia = new Date(year, month, 0);
-        document.getElementById('fechaInicio').value = formatDate(primerDia);
-        document.getElementById('fechaFin').value = formatDate(ultimoDia);
+        
+        // Llenar y deshabilitar fechas individuales
+        fechaInicio.value = formatDate(primerDia);
+        fechaFin.value = formatDate(ultimoDia);
+        fechaInicio.disabled = true; // Deshabilitar fechas
+        fechaFin.disabled = true;
+        
         document.getElementById('btnFiltrar').click();
     });
 
+    fechaInicio.addEventListener('change', () => {
+        if (fechaInicio.value || fechaFin.value) {
+            filtroMes.value = ''; // Limpiar mes si se usa la fecha individual
+            fechaInicio.disabled = false;
+            fechaFin.disabled = false;
+        }
+    });
+    
+    fechaFin.addEventListener('change', () => {
+        if (fechaInicio.value || fechaFin.value) {
+            filtroMes.value = ''; // Limpiar mes si se usa la fecha individual
+            fechaInicio.disabled = false;
+            fechaFin.disabled = false;
+        }
+    });
+    // --- FIN LÓGICA DE FILTROS DE FECHA EXCLUYENTE ---
+
+
     document.getElementById('btnFiltrar').addEventListener('click', () => {
-        const fechaInicio = document.getElementById('fechaInicio').value;
-        const fechaFin = document.getElementById('fechaFin').value;
+        const fechaInicioVal = fechaInicio.value;
+        const fechaFinVal = fechaFin.value;
         const material = document.getElementById('filtroMaterial').value;
         const cantera = document.getElementById('filtroCantera').value;
         const proyecto = document.getElementById('filtroProyecto').value;
         const chofer = document.getElementById('filtroChofer').value;
         let filtros = [];
-        if (fechaInicio) filtros.push(where("fecha", ">=", fechaInicio));
-        if (fechaFin) filtros.push(where("fecha", "<=", fechaFin));
+        if (fechaInicioVal) filtros.push(where("fecha", ">=", fechaInicioVal));
+        if (fechaFinVal) filtros.push(where("fecha", "<=", fechaFinVal));
         if (material) filtros.push(where("material", "==", material));
         if (cantera) filtros.push(where("cantera", "==", cantera));
         if (proyecto) filtros.push(where("proyecto", "==", proyecto));
@@ -742,9 +774,11 @@ const inicializarApp = async () => {
     });
 
     document.getElementById('btnMostrarTodo').addEventListener('click', () => {
-        document.getElementById('filtroMes').value = '';
-        document.getElementById('fechaInicio').value = '';
-        document.getElementById('fechaFin').value = '';
+        filtroMes.value = ''; 
+        fechaInicio.value = ''; 
+        fechaFin.value = '';
+        fechaInicio.disabled = false; 
+        fechaFin.disabled = false;
         document.getElementById('filtroMaterial').selectedIndex = 0;
         document.getElementById('filtroCantera').selectedIndex = 0;
         document.getElementById('filtroProyecto').selectedIndex = 0;

@@ -26,12 +26,42 @@ body {
     padding: 0 20px; /* Padding horizontal para evitar que el contenido toque los bordes */
     box-sizing: border-box;
 }
-.header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-#logo { height: 70px; margin-right: 15px; }
 
-.title-container { text-align: center; flex-grow: 1; }
-.title-container h1 { margin: 0; font-size: 1.8em; line-height: 1.2; color: var(--color-primario); }
-.title-container h2 { margin: 5px 0 0 0; font-size: 1.2em; color: var(--color-secundario); font-weight: 400; border: none; }
+/* --- HEADER RESPONSIVO MODIFICADO --- */
+.header-container { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    flex-wrap: wrap; /* Permite que los elementos salten de línea */
+}
+#logo { 
+    height: 70px; 
+    margin-right: 15px; 
+}
+
+.title-container { 
+    text-align: center; 
+    flex-grow: 1; 
+}
+.title-container h1 { 
+    margin: 0; 
+    font-size: 1.8em; 
+    line-height: 1.2; 
+    color: var(--color-primario); 
+}
+.title-container h2 { 
+    margin: 5px 0 0 0; 
+    font-size: 1.2em; 
+    color: var(--color-secundario); 
+    font-weight: 400; 
+    border: none; 
+}
+
+/* Ajustes para que el botón "Cerrar Sesión" salte de línea en pantallas pequeñas */
+#btnLogout {
+    margin-left: auto;
+}
 
 h2, h3 { color: var(--color-primario); text-align: center; }
 h2 { border-bottom: 2px solid #eef; padding-bottom: 10px; }
@@ -103,11 +133,30 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 /* Form buttons layout */
 .form-buttons { display: flex; gap: 10px; }
 
-/* Filter form layout */
-.filter-form { display: flex; gap: 15px; align-items: center; justify-content: center; flex-wrap: wrap; }
-.filter-form label { font-weight: bold; }
+/* Filter form layout (ACTUALIZADO PARA RESPONSIVO) */
+.filter-form { 
+    display: flex; 
+    gap: 10px; /* Reducir gap */
+    align-items: center; 
+    justify-content: flex-start; /* Alinear a la izquierda para mejor flujo en móvil */
+    flex-wrap: wrap; /* Permitir que los elementos salten de línea en pantallas pequeñas */
+}
+.filter-form label { 
+    font-weight: bold; 
+    flex-basis: 100%; /* Las etiquetas ocupan todo el ancho en móvil */
+    margin-top: 5px; 
+}
+.filter-form input[type="date"], 
+.filter-form input[type="month"], 
+.filter-form select {
+    flex-grow: 1; /* Permitir que los campos de entrada crezcan */
+    min-width: 150px; /* Ancho mínimo para mantener la usabilidad */
+}
+.filter-form button {
+    flex-grow: 1;
+}
 
-/* Initially hidden elements */
+/* Inicialmente hidden elements */
 #btnCancelarEdicion { display: none; }
 .print-only { display: none; } /* Default hide for print-only elements */
 #signature-section { display: none; }
@@ -123,8 +172,9 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 
 /* KPI section layout */
 .kpi-container {
+    /* Mantiene dos columnas en pantallas medianas/grandes, pero se adapta a 1 columna si es necesario */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
 }
@@ -177,6 +227,66 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 .quick-link-btn span {
     font-size: 2.5em;
+}
+
+/* --- Media Query para dispositivos móviles (< 768px) --- */
+@media (max-width: 768px) {
+    .main-container { 
+        padding: 0 10px; /* Reducir padding en móvil */
+    }
+    
+    .header-container {
+        flex-direction: column; /* Apilar elementos */
+        align-items: center;
+    }
+    
+    .title-container {
+        order: 3; /* Mover el título debajo de los elementos principales */
+        margin-top: 10px;
+        flex-basis: 100%;
+    }
+    .title-container h1 { 
+        font-size: 1.4em; 
+    }
+    .title-container h2 {
+        font-size: 1em;
+    }
+    
+    #logo {
+        order: 1;
+        height: 60px;
+    }
+    
+    #btnLogout {
+        order: 2;
+        margin-left: 0 !important;
+        margin-top: 10px;
+        width: 100%; /* Ocupar todo el ancho en móvil */
+    }
+
+    /* Asegurar que el contenido de la tabla se pueda desplazar horizontalmente */
+    .card > div[style="overflow-x:auto;"] {
+        width: 100%;
+        overflow-x: auto;
+    }
+    
+    /* Forzar el scroll horizontal si la tabla es más ancha que el viewport */
+    #registrosTabla {
+        min-width: 1000px; /* Ancho mínimo para mantener la legibilidad de las columnas */
+    }
+    
+    .admin-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .admin-sidebar {
+        min-width: unset;
+        width: 100%;
+    }
+    .admin-content {
+        min-width: unset;
+        width: 100%;
+    }
 }
 
 
@@ -352,7 +462,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     #signature-section {
         display: flex;
         justify-content: center;
-        margin-top: 60px; /* MODIFICACIÓN: Aumentado para más separación */
+        margin-top: 60px; /* Aumentado para más separación */
         page-break-inside: avoid;
     }
     .signature-box { text-align: center; width: 300px; }
