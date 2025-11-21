@@ -172,6 +172,8 @@ const cargarResumenAnalitico = async (filtrosAnaliticos = []) => {
     const errorEl = document.getElementById('analitics-error');
     if (!errorEl) return;
     
+    // Al iniciar la carga, mostramos el mensaje de carga
+    errorEl.style.display = 'block'; 
     errorEl.textContent = 'Cargando datos analíticos...';
 
     const tablaProyectoMaterial = document.getElementById('tablaProyectoMaterial');
@@ -341,10 +343,12 @@ const cargarResumenAnalitico = async (filtrosAnaliticos = []) => {
         // 3. Por Chofer (Simple)
         agruparYRenderizarSimple(registros, 'nombres', tablaChoferes, 'Chofer');
         
-        errorEl.textContent = 'Datos analíticos cargados.'; 
+        // CORRECCIÓN CLAVE: Ocultar el elemento de error/carga si todo sale bien
+        errorEl.style.display = 'none'; 
 
     } catch (error) {
         console.error("Error al cargar resumen analítico:", error);
+        errorEl.style.display = 'block';
         errorEl.textContent = 'Error al cargar los datos analíticos. Revise la consola para detalles.';
     }
 };
