@@ -338,7 +338,8 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 #registrosTabla thead th:nth-child(3), 
 #registrosTabla tbody td:nth-child(3) { /* Nombres */
-    width: 100px;
+    width: 110px; /* Aumentado */
+    white-space: normal; /* Permitir salto de línea */
 }
 #registrosTabla thead th:nth-child(4), 
 #registrosTabla tbody td:nth-child(4) { /* Placa */
@@ -354,11 +355,13 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 #registrosTabla thead th:nth-child(7), 
 #registrosTabla tbody td:nth-child(7) { /* Proyecto */
-    width: 150px;
+    width: 150px; /* Aumentado */
+    white-space: normal; /* Permitir salto de línea */
 }
 #registrosTabla thead th:nth-child(8), 
-#registrosTabla tbody td:nth-child(8) { /* Observaciones (Reducir para darle espacio a las de volumen) */
-    width: 250px; 
+#registrosTabla tbody td:nth-child(8) { /* Observaciones (Aún más espacio) */
+    width: 300px; /* Aumentado significativamente */
+    white-space: normal; /* Permitir salto de línea */
 }
 #registrosTabla thead th:nth-child(9), 
 #registrosTabla tbody td:nth-child(9) { /* Volumen */
@@ -375,17 +378,30 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     width: 80px;
     text-align: right;
 }
+/* La columna de Acciones (12) se ajustará automáticamente */
+
+/* Reglas de Desbordamiento para permitir varias líneas sin que la fila sea gigante */
 #registrosTabla tbody td {
-    /* Asegurar que el texto largo se corte con puntos suspensivos */
-    white-space: nowrap;
+    white-space: nowrap; /* Regla general, pero anulada abajo */
     overflow: hidden;
     text-overflow: ellipsis;
+    vertical-align: top; /* Alinear el texto de varias líneas a la parte superior */
 }
-#registrosTabla tbody td:nth-child(8) { /* Solo para la celda de Observaciones */
-    white-space: normal; /* Permitir que las observaciones salten de línea */
+
+/* Permitir que estas celdas crezcan en altura hasta un límite */
+#registrosTabla tbody td:nth-child(3), /* Nombres */
+#registrosTabla tbody td:nth-child(7), /* Proyecto */
+#registrosTabla tbody td:nth-child(8) { /* Observaciones */
+    white-space: normal;
     word-break: break-word;
-    max-height: 40px; /* Altura máxima */
-    overflow: hidden; /* Ocultar si excede la altura */
+    max-height: 50px; /* Limitar la altura de la celda a ~2-3 líneas */
+    /* El overflow: hidden ya está aplicado en la regla general de td, lo que cortará el exceso */
+}
+/* Asegurar que las celdas numéricas se alinean a la derecha */
+#registrosTabla tbody td:nth-child(9), 
+#registrosTabla tbody td:nth-child(11) {
+    text-align: right;
+    white-space: nowrap;
 }
 
 
