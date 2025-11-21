@@ -320,6 +320,75 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 
 
+/* --- Mejora de Anchos de Columna para Vista en Pantalla (Reportes) --- */
+#registrosTabla {
+    /* Forzar el modo de ancho fijo para aplicar proporciones */
+    table-layout: fixed; 
+    width: 100%;
+}
+
+#registrosTabla thead th:nth-child(1), 
+#registrosTabla tbody td:nth-child(1) { /* Item */
+    width: 40px; 
+    text-align: center;
+}
+#registrosTabla thead th:nth-child(2), 
+#registrosTabla tbody td:nth-child(2) { /* Fecha */
+    width: 80px; 
+}
+#registrosTabla thead th:nth-child(3), 
+#registrosTabla tbody td:nth-child(3) { /* Nombres */
+    width: 100px;
+}
+#registrosTabla thead th:nth-child(4), 
+#registrosTabla tbody td:nth-child(4) { /* Placa */
+    width: 80px;
+}
+#registrosTabla thead th:nth-child(5), 
+#registrosTabla tbody td:nth-child(5) { /* Material */
+    width: 100px;
+}
+#registrosTabla thead th:nth-child(6), 
+#registrosTabla tbody td:nth-child(6) { /* Cantera */
+    width: 100px;
+}
+#registrosTabla thead th:nth-child(7), 
+#registrosTabla tbody td:nth-child(7) { /* Proyecto */
+    width: 150px;
+}
+#registrosTabla thead th:nth-child(8), 
+#registrosTabla tbody td:nth-child(8) { /* Observaciones (Reducir para darle espacio a las de volumen) */
+    width: 250px; 
+}
+#registrosTabla thead th:nth-child(9), 
+#registrosTabla tbody td:nth-child(9) { /* Volumen */
+    width: 70px;
+    text-align: right;
+}
+#registrosTabla thead th:nth-child(10), 
+#registrosTabla tbody td:nth-child(10) { /* # Viajes */
+    width: 50px; 
+    text-align: center;
+}
+#registrosTabla thead th:nth-child(11), 
+#registrosTabla tbody td:nth-child(11) { /* Vol. Total */
+    width: 80px;
+    text-align: right;
+}
+#registrosTabla tbody td {
+    /* Asegurar que el texto largo se corte con puntos suspensivos */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#registrosTabla tbody td:nth-child(8) { /* Solo para la celda de Observaciones */
+    white-space: normal; /* Permitir que las observaciones salten de línea */
+    word-break: break-word;
+    max-height: 40px; /* Altura máxima */
+    overflow: hidden; /* Ocultar si excede la altura */
+}
+
+
 /* --- Media Query para dispositivos móviles (< 768px) --- */
 @media (max-width: 768px) {
     .main-container { 
