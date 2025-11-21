@@ -45,17 +45,13 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Función para cargar el HTML dinámico de las secciones
+// Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO)
 const cargarContenidoHTML = () => {
     
-    // HTML para el Panel de Inicio (Botones de Acceso Directo Actualizados)
+    // HTML para el Panel de Inicio (Solo Volumen Semanal y Mensual)
     document.getElementById('tab-inicio').innerHTML = `
         
         <div class="kpi-container">
-            <div class="kpi-card">
-                <h3>Volumen de Hoy (m³)</h3>
-                <p id="kpi-volumen-hoy">Cargando...</p>
-            </div>
             <div class="kpi-card">
                 <h3>Volumen Semanal (m³)</h3>
                 <p id="kpi-volumen-semanal">Cargando...</p>
@@ -294,7 +290,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         if (nuevoValor) {
             try {
                 if(idParaEditar) { 
-                    // --- LÓGICA DE ACTUALIZACIÓN MASIVA ---
+                    // --- LÓGICA DE ACTUALIZACIÓN MASIVA (MEJORA DE CONSISTENCIA DE DATOS) ---
                     await updateDoc(doc(db, collectionName, idParaEditar), { nombre: nuevoValor }); 
                     
                     if (nombreAntiguo && nombreAntiguo !== nuevoValor) {
@@ -489,30 +485,25 @@ const administrarChoferesVehiculos = async () => {
     await render(); // Carga inicial
 };
 
-// --- FUNCIÓN DE KPIs ---
+// --- FUNCIÓN DE KPIs MODIFICADA (Volumen de Hoy ELIMINADO) ---
 const cargarKPIs = async () => {
     try {
-        // 1. Obtener referencias a los elementos del DOM
-        const kpiVolumenHoyEl = document.getElementById('kpi-volumen-hoy');
+        // 1. Obtener referencias a los elementos del DOM (Solo Semanal y Mensual)
         const kpiVolumenSemanalEl = document.getElementById('kpi-volumen-semanal');
         const kpiVolumenMensualEl = document.getElementById('kpi-volumen-mensual');
         
-        if (!kpiVolumenHoyEl || !kpiVolumenSemanalEl || !kpiVolumenMensualEl) {
+        if (!kpiVolumenSemanalEl || !kpiVolumenMensualEl) {
              console.log("Elementos KPI no encontrados, saltando carga.");
              return;
         }
 
         // Poner en estado de carga
-        kpiVolumenHoyEl.textContent = "Cargando...";
         kpiVolumenSemanalEl.textContent = "Cargando...";
         kpiVolumenMensualEl.textContent = "Cargando...";
 
         // 2. Definir rangos de fechas
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-
-        // Hoy
-        const hoyStr = formatDate(hoy);
 
         // Semanal (Domingo a Sábado)
         const diaSemana = hoy.getDay(); // 0 = Domingo
@@ -547,11 +538,6 @@ const cargarKPIs = async () => {
 
         // 4. Ejecutar Queries
         
-        // Query Hoy
-        const qHoy = query(collection(db, "registros"), where("fecha", "==", hoyStr));
-        const snapshotHoy = await getDocs(qHoy);
-        kpiVolumenHoyEl.textContent = calcularVolumen(snapshotHoy).toFixed(2);
-        
         // Query Semanal
         const qSemana = query(collection(db, "registros"), 
                             where("fecha", ">=", inicioSemanaStr), 
@@ -568,7 +554,6 @@ const cargarKPIs = async () => {
         
     } catch (error) {
         console.error("Error al cargar KPIs:", error);
-        if(document.getElementById('kpi-volumen-hoy')) document.getElementById('kpi-volumen-hoy').textContent = "Error";
         if(document.getElementById('kpi-volumen-semanal')) document.getElementById('kpi-volumen-semanal').textContent = "Error";
         if(document.getElementById('kpi-volumen-mensual')) document.getElementById('kpi-volumen-mensual').textContent = "Error";
     }
