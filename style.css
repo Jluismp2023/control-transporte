@@ -133,28 +133,50 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 /* Form buttons layout */
 .form-buttons { display: flex; gap: 10px; }
 
-/* Filter form layout (ACTUALIZADO PARA RESPONSIVO) */
+/* Filter form layout (ACTUALIZADO para usar 2 o 3 columnas en desktop) */
 .filter-form { 
     display: flex; 
-    gap: 10px; /* Reducir gap */
+    gap: 15px; /* Aumentar el espacio entre elementos */
     align-items: center; 
-    justify-content: flex-start; /* Alinear a la izquierda para mejor flujo en móvil */
-    flex-wrap: wrap; /* Permitir que los elementos salten de línea en pantallas pequeñas */
+    justify-content: flex-start; 
+    flex-wrap: wrap; 
+    /* Contenedor padre con una cuadrícula implícita */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 2 o 3 columnas que se autoajustan */
+    
 }
 .filter-form label { 
     font-weight: bold; 
-    flex-basis: 100%; /* Las etiquetas ocupan todo el ancho en móvil */
-    margin-top: 5px; 
+    /* Eliminar flex-basis: 100% para que la etiqueta se alinee con el input/select */
+    grid-column: span 1; /* Cada etiqueta ocupa una columna */
+    margin-top: 0; 
+    align-self: center; /* Centrar verticalmente con el input */
 }
-.filter-form input[type="date"], 
-.filter-form input[type="month"], 
-.filter-form select {
-    flex-grow: 1; /* Permitir que los campos de entrada crezcan */
-    min-width: 150px; /* Ancho mínimo para mantener la usabilidad */
+
+/* Aplicar un estilo de grid de 2 columnas solo a los grupos input/select */
+.filter-form > div, 
+.filter-form > input, 
+.filter-form > select {
+    grid-column: span 1; /* Ocupa una columna */
+    min-width: 100%; /* El elemento ocupa todo el espacio de su columna */
 }
+
+/* Elementos especiales que deben ocupar más espacio (como los botones) */
 .filter-form button {
-    flex-grow: 1;
+    /* Los botones Filtar/Mostrar Todo/Imprimir/Exportar se apilan mejor al final si son flexibles */
+    grid-column: span 1; 
+    min-width: 100%;
 }
+
+/* Ajuste para la línea de separación (span) */
+.filter-form span {
+    grid-column: 1 / -1; /* Ocupa el ancho completo */
+    margin: 15px 0 !important;
+    height: 1px;
+    background-color: var(--color-borde);
+    border-left: none !important;
+}
+
 
 /* Inicialmente hidden elements */
 #btnCancelarEdicion { display: none; }
@@ -286,6 +308,11 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     .admin-content {
         min-width: unset;
         width: 100%;
+    }
+    
+    /* Filtros en una sola columna para móvil */
+    .filter-form {
+        grid-template-columns: 1fr; 
     }
 }
 
