@@ -571,8 +571,13 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     table {
         border-collapse: collapse;
         width: 100%;
-        table-layout: fixed;
+        /* IMPORTANTE: Desactivar table-layout: fixed para que los anchos proporcionales funcionen */
+        table-layout: auto; 
         margin-top: 0; 
+    }
+    #registrosTabla {
+        /* Asegurar que la tabla principal vuelva a layout: auto en impresión */
+        table-layout: auto !important; 
     }
     table thead {
         display: table-header-group; /* Repeat header on each page */
@@ -608,21 +613,18 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
         text-align: right;
     }
     
-    /* Hide action column in print */
-    th.action-cell, td.action-cell { display: none !important; }
-
-    /* Column widths for print (ajustados ligeramente) */
-    thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 7%; } /* Fecha */
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 12%; } /* Nombres */
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 8%; } /* Placa */
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; } /* Material */
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; } /* Cantera */
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 15%; } /* Proyecto */
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 17%; } /* Observaciones */
-    thead th:nth-child(9), tbody td:nth-child(9) { width: 5%; text-align: center; } /* Volumen */
-    thead th:nth-child(10), tbody td:nth-child(10) { width: 5%; text-align: center; } /* # Viajes */
-    thead th:nth-child(11), tbody td:nth-child(11) { width: 8%; text-align: center; font-weight: bold; } /* Vol. Total */
+    /* Anchos de Columna en IMPRESIÓN - (Mantenemos los anchos originales proporcionales para una buena distribución) */
+    #registrosTabla thead th:nth-child(1), tbody td:nth-child(1) { width: 3%; text-align: center; } /* Item */
+    #registrosTabla thead th:nth-child(2), tbody td:nth-child(2) { width: 7%; } /* Fecha */
+    #registrosTabla thead th:nth-child(3), tbody td:nth-child(3) { width: 12%; } /* Nombres */
+    #registrosTabla thead th:nth-child(4), tbody td:nth-child(4) { width: 8%; } /* Placa */
+    #registrosTabla thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; } /* Material */
+    #registrosTabla thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; } /* Cantera */
+    #registrosTabla thead th:nth-child(7), tbody td:nth-child(7) { width: 15%; } /* Proyecto */
+    #registrosTabla thead th:nth-child(8), tbody td:nth-child(8) { width: 17%; } /* Observaciones */
+    #registrosTabla thead th:nth-child(9), tbody td:nth-child(9) { width: 5%; text-align: center; } /* Volumen */
+    #registrosTabla thead th:nth-child(10), tbody td:nth-child(10) { width: 5%; text-align: center; } /* # Viajes */
+    #registrosTabla thead th:nth-child(11), tbody td:nth-child(11) { width: 8%; text-align: center; font-weight: bold; } /* Vol. Total */
     
     /* Signature section for print */
     #signature-section {
