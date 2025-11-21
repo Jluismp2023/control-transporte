@@ -37,7 +37,7 @@ const formatDate = (date) => {
 }
 
 // =========================================================================
-// NUEVA LÓGICA DE ROLES
+// LÓGICA DE ROLES
 // =========================================================================
 
 // Configuración de roles (Se puede expandir con claims de Firebase si la aplicación crece)
@@ -54,6 +54,7 @@ const getUserRole = (user) => {
 // =========================================================================
 // FIN LÓGICA DE ROLES
 // =========================================================================
+
 
 // Comprobar estado de autenticación
 onAuthStateChanged(auth, (user) => {
@@ -354,7 +355,7 @@ const cargarContenidoHTML = () => {
     
     // Obtener rol actual para decidir qué contenido cargar
     const userRole = getUserRole(auth.currentUser);
-    const isAdmin = userRole !== 'observer'; // Sólo el observador debe tener restricciones en BD
+    const isAdminOrUser = userRole !== 'observer'; 
 
     // HTML para el Panel de Inicio (Solo Volumen Semanal y Mensual)
     document.getElementById('tab-inicio').innerHTML = `
@@ -378,7 +379,7 @@ const cargarContenidoHTML = () => {
                 <button class="quick-link-btn" data-tab="tab-summary">
                     <span>📊</span> Reportes
                 </button>
-                ${isAdmin ? `
+                ${isAdminOrUser ? `
                 <button class="quick-link-btn" data-tab="tab-admin">
                     <span>⚙️</span> BD
                 </button>` : ''}
@@ -509,6 +510,8 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
     const editIdInput = form.querySelector('.edit-id');
     const submitBtn = form.querySelector('button[type="submit"]');
     
+    const userRole = getUserRole(auth.currentUser);
+
     // Resetea el formulario de admin
     const resetForm = () => { 
         editIdInput.value = ''; 
@@ -555,16 +558,34 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
             li.innerHTML = `
                 <span>${item.nombre}</span>
                 <div class="actions">
+                    ${userRole !== 'observer' ? `
                     <button class="list-action-btn edit-btn" title="Modificar" data-id="${item.id}" data-nombre="${item.nombre}">✏️</button>
                     <button class="list-action-btn delete-btn" title="Borrar" data-id="${item.id}">🗑️</button>
+                    ` : '<span style="color: gray;">(Solo lectura)</span>'}
                 </div>`;
             listaUl.appendChild(li);
         });
+        
+        // Deshabilitar formulario si es observador
+        if (userRole === 'observer') {
+            Array.from(form.elements).forEach(element => {
+                element.disabled = true;
+            });
+            submitBtn.textContent = 'Acceso Denegado (Observador)';
+            submitBtn.disabled = true;
+        }
     };
     
     // Manejador para enviar el formulario (Agregar/Editar)
     form.addEventListener('submit', async e => {
         e.preventDefault();
+        
+        // BLOQUEO DE ESCRITURA
+        if (userRole === 'observer') {
+            alert("Acceso denegado. Los usuarios observadores no pueden modificar datos en la Base de Datos.");
+            return;
+        }
+        
         const nuevoValor = inputEl.value.trim();
         const idParaEditar = editIdInput.value;
         const nombreAntiguo = inputEl.dataset.nombreAntiguo; // Recuperamos el nombre anterior
@@ -631,6 +652,12 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
         const target = e.target.closest('button');
         if (!target) return;
         const id = target.dataset.id;
+
+        // BLOQUEO DE ESCRITURA
+        if (userRole === 'observer') {
+            alert("Acceso denegado. Los usuarios observadores no pueden modificar datos en la Base de Datos.");
+            return;
+        }
         
         if (target.classList.contains('delete-btn')) {
             if (confirm(`¿Seguro que quieres borrar este ${nombreSingular}? Ten en cuenta que los registros de viajes que usaban este nombre quedarán con un valor inconsistente.`)) {
@@ -645,10 +672,8 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 }
             }
         } else if (target.classList.contains('edit-btn')) {
-            // Guardar el nombre actual en un atributo para usarlo en la actualización masiva
-            const nombreActual = target.dataset.nombre;
-            inputEl.value = nombreActual;
-            inputEl.dataset.nombreAntiguo = nombreActual;
+            // Permitir la precarga del formulario (pero el submit sigue bloqueado)
+            inputEl.value = target.dataset.nombre;
             editIdInput.value = id;
             submitBtn.textContent = 'Guardar';
             submitBtn.classList.add('btn-success');
@@ -671,6 +696,8 @@ const administrarChoferesVehiculos = async () => {
     const selectNombreEl = document.getElementById('selectNombreAdmin');
     const nuevaPlacaEl = document.getElementById('nuevaPlaca');
     const nuevoVolumenEl = document.getElementById('nuevoVolumen');
+    
+    const userRole = getUserRole(auth.currentUser);
 
     // Cargar select de choferes
     const qNombres = query(collection(db, "nombresDeChoferes"));
@@ -701,16 +728,34 @@ const administrarChoferesVehiculos = async () => {
             li.innerHTML = `
                 <span>${chofer.nombre} - ${chofer.placa} (${chofer.volumen} m³)</span>
                 <div class="actions">
+                    ${userRole !== 'observer' ? `
                     <button class="list-action-btn edit-btn" title="Modificar" data-id="${chofer.id}">✏️</button>
                     <button class="list-action-btn delete-btn" title="Borrar" data-id="${chofer.id}">🗑️</button>
+                    ` : '<span style="color: gray;">(Solo lectura)</span>'}
                 </div>`;
             listaUl.appendChild(li);
         });
+        
+        // Deshabilitar formulario si es observador
+        if (userRole === 'observer') {
+            Array.from(form.elements).forEach(element => {
+                element.disabled = true;
+            });
+            submitBtn.textContent = 'Acceso Denegado (Observador)';
+            submitBtn.disabled = true;
+        }
     };
     
     // Manejador para asignar/editar vehículo
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // BLOQUEO DE ESCRITURA
+        if (userRole === 'observer') {
+            alert("Acceso denegado. Los usuarios observadores no pueden modificar datos en la Base de Datos.");
+            return;
+        }
+
         const idParaEditar = editIdInput.value;
         const data = { 
             nombre: selectNombreEl.value, 
@@ -744,6 +789,12 @@ const administrarChoferesVehiculos = async () => {
         if (!target) return;
         const id = target.dataset.id;
         
+        // BLOQUEO DE ESCRITURA
+        if (userRole === 'observer') {
+            alert("Acceso denegado. Los usuarios observadores no pueden modificar datos en la Base de Datos.");
+            return;
+        }
+
         if (target.classList.contains('delete-btn')) {
             if (confirm(`¿Seguro que quieres borrar esta asignación?`)) {
                 try {
@@ -755,6 +806,7 @@ const administrarChoferesVehiculos = async () => {
                 }
             }
         } else if (target.classList.contains('edit-btn')) {
+            // Permitir la precarga del formulario (pero el submit sigue bloqueado)
             const item = choferesVehiculosCache.find(c => c.id === id);
             if(item) {
                 selectNombreEl.value = item.nombre;
@@ -875,8 +927,10 @@ const inicializarApp = async (user) => {
     // Ocultar botón BD y secciones de administración si es Observador
     const userRole = getUserRole(user);
     if (userRole === 'observer') {
-        const bdButton = document.querySelector('.quick-link-btn[data-tab="tab-admin"]');
+        const bdButton = document.querySelector('.tab-button[data-tab="tab-admin"]');
         if (bdButton) bdButton.remove();
+        const quickBdButton = document.querySelector('.quick-link-btn[data-tab="tab-admin"]');
+        if (quickBdButton) quickBdButton.remove();
         
         // Deshabilitar formulario de Registro para observadores
         if (transporteForm) {
