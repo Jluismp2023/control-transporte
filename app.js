@@ -469,12 +469,11 @@ const cargarContenidoHTML = () => {
             </div>
         </div>`;
     
-    // --- NUEVO HTML PARA ANÁLISIS ---
+    // --- NUEVO HTML PARA ANÁLISIS (Texto descriptivo eliminado) ---
     document.getElementById('tab-analytics').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         <div class="card">
             <h2>📈 Resumen Analítico de Transporte</h2>
-            <p>Muestra el volumen total ($\text{m}^3$) y el número de viajes por categorías.</p>
             
             <div class="analitics-section" style="grid-column: 1 / -1; margin-bottom: 20px;">
                 <h3>🏁 Proyectos vs. Materiales Suministrados</h3>
@@ -639,7 +638,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 resetForm(); 
                 // Después de la actualización masiva, recargar todo lo necesario
                 await render();
-                await cargarRegistros(); // Recargar tabla de reportes después de editar/agregar
+                await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de editar/agregar
                 await cargarResumenAnalitico(); // NUEVO: Recargar resumen analítico
                 
             } catch (error) {
