@@ -135,39 +135,124 @@ const cargarRegistros = async (filtros = []) => {
 };
 
 // Función para calcular y mostrar el resumen analítico
-const cargarResumenAnalitico = async () => {
+const cargarResumenAnalitico = async (filtrosAnaliticos = []) => {
     const errorEl = document.getElementById('analitics-error');
-    if (!errorEl) return; // Si no existe la pestaña, salir
+    if (!errorEl) return;
     
     errorEl.textContent = 'Cargando datos analíticos...';
 
-    const tablaProyectos = document.getElementById('tablaProyectos');
+    const tablaProyectoMaterial = document.getElementById('tablaProyectoMaterial');
     const tablaMateriales = document.getElementById('tablaMateriales');
     const tablaChoferes = document.getElementById('tablaChoferes');
     
     // Inicializar tablas con mensaje de carga
-    const generarCarga = (titulo) => `<thead><tr><th>${titulo}</th><th>Volumen Total (m³)</th><th># Viajes</th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>`;
-    if (tablaProyectos) tablaProyectos.innerHTML = generarCarga("Proyecto");
+    const generarCarga = (titulo1, titulo2 = "Volumen Total (m³)") => `<thead><tr><th>${titulo1}</th><th>${titulo2}</th><th># Viajes</th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>`;
+    if (tablaProyectoMaterial) tablaProyectoMaterial.innerHTML = generarCarga("Proyecto / Material");
     if (tablaMateriales) tablaMateriales.innerHTML = generarCarga("Material");
     if (tablaChoferes) tablaChoferes.innerHTML = generarCarga("Chofer");
     
     try {
-        const q = query(collection(db, "registros"));
+        // Ejecutar la consulta con los filtros de Reportes
+        let q = query(collection(db, "registros"));
+        if (filtrosAnaliticos.length > 0) { 
+            q = query(collection(db, "registros"), ...filtrosAnaliticos); 
+        }
+        
         const snapshot = await getDocs(q);
         const registros = snapshot.docs.map(doc => doc.data());
         
         if (registros.length === 0) {
-            errorEl.textContent = 'No hay registros de viajes para analizar.';
+            errorEl.textContent = 'No hay registros de viajes para analizar con los filtros actuales.';
             const sinDatos = (titulo) => generarCarga(titulo).replace('Cargando...', 'Sin datos');
-            if (tablaProyectos) tablaProyectos.innerHTML = sinDatos("Proyecto");
+            if (tablaProyectoMaterial) tablaProyectoMaterial.innerHTML = sinDatos("Proyecto / Material");
             if (tablaMateriales) tablaMateriales.innerHTML = sinDatos("Material");
             if (tablaChoferes) tablaChoferes.innerHTML = sinDatos("Chofer");
             return;
         }
 
-        const agruparYRenderizar = (data, campoAgrupacion, tablaElemento, tituloColumna) => {
-            if (!tablaElemento) return;
+        // --- LÓGICA DE AGRUPACIÓN ANIDADA (Proyecto vs Material) ---
+        const agruparProyectoMaterial = (data) => {
+            if (!tablaProyectoMaterial) return;
+
+            const resumen = data.reduce((acc, registro) => {
+                const proyectoKey = registro.proyecto || 'SIN PROYECTO';
+                const materialKey = registro.material || 'SIN MATERIAL';
+                const volumen = parseFloat(registro.volumen) || 0;
+                const numViajes = parseInt(registro.numViajes) || 0;
+                const volumenTotal = volumen * numViajes;
+
+                if (!acc[proyectoKey]) {
+                    acc[proyectoKey] = { 
+                        totalVolumen: 0, 
+                        totalViajes: 0, 
+                        materiales: {} 
+                    };
+                }
+                
+                if (!acc[proyectoKey].materiales[materialKey]) {
+                    acc[proyectoKey].materiales[materialKey] = { volumen: 0, viajes: 0 };
+                }
+
+                acc[proyectoKey].materiales[materialKey].volumen += volumenTotal;
+                acc[proyectoKey].materiales[materialKey].viajes += numViajes;
+                acc[proyectoKey].totalVolumen += volumenTotal;
+                acc[proyectoKey].totalViajes += numViajes;
+                
+                return acc;
+            }, {});
             
+            let html = `<thead><tr><th>Proyecto / Material</th><th>Volumen Total (m³)</th><th># Viajes</th></tr></thead><tbody>`;
+            
+            const proyectosOrdenados = Object.entries(resumen)
+                .sort(([, a], [, b]) => b.totalVolumen - a.totalVolumen);
+
+            let totalGeneralVolumen = 0;
+            let totalGeneralViajes = 0;
+
+            proyectosOrdenados.forEach(([proyecto, datos]) => {
+                html += `<tr class="analitics-group-header"><td colspan="3"><strong>🏁 ${proyecto}</strong></td></tr>`;
+                
+                const materialesOrdenados = Object.entries(datos.materiales)
+                    .sort(([, a], [, b]) => b.volumen - a.volumen);
+                    
+                materialesOrdenados.forEach(([material, value]) => {
+                    html += `
+                        <tr class="analitics-sub-item">
+                            <td>— ${material}</td>
+                            <td style="text-align:right;">${value.volumen.toFixed(2)}</td>
+                            <td style="text-align:center;">${value.viajes}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                    <tr class="analitics-sub-total">
+                        <td><strong>Subtotal ${proyecto}</strong></td>
+                        <td style="text-align:right;"><strong>${datos.totalVolumen.toFixed(2)}</strong></td>
+                        <td style="text-align:center;"><strong>${datos.totalViajes}</strong></td>
+                    </tr>
+                `;
+                totalGeneralVolumen += datos.totalVolumen;
+                totalGeneralViajes += datos.totalViajes;
+            });
+            
+            // Fila de totales
+            html += `
+                <tr class="analitics-total">
+                    <td><strong>TOTAL GENERAL</strong></td>
+                    <td style="text-align:right;"><strong>${totalGeneralVolumen.toFixed(2)}</strong></td>
+                    <td style="text-align:center;"><strong>${totalGeneralViajes}</strong></td>
+                </tr>
+            `;
+
+            html += `</tbody>`;
+            tablaProyectoMaterial.innerHTML = html;
+        };
+        
+        // Función general de agrupación simple (mantener para Chofer y Material)
+        const agruparYRenderizarSimple = (data, campoAgrupacion, tablaElemento, tituloColumna) => {
+            if (!tablaElemento) return;
+
             const resumen = data.reduce((acc, registro) => {
                 const key = registro[campoAgrupacion] || 'SIN ESPECIFICAR';
                 const volumen = parseFloat(registro.volumen) || 0;
@@ -214,16 +299,16 @@ const cargarResumenAnalitico = async () => {
             tablaElemento.innerHTML = html;
         };
 
-        // 1. Por Proyecto
-        agruparYRenderizar(registros, 'proyecto', tablaProyectos, 'Proyecto');
+        // 1. Por Proyecto vs Material (Anidado)
+        agruparProyectoMaterial(registros);
 
-        // 2. Por Material
-        agruparYRenderizar(registros, 'material', tablaMateriales, 'Material');
+        // 2. Por Material (Simple)
+        agruparYRenderizarSimple(registros, 'material', tablaMateriales, 'Material');
 
-        // 3. Por Chofer
-        agruparYRenderizar(registros, 'nombres', tablaChoferes, 'Chofer');
+        // 3. Por Chofer (Simple)
+        agruparYRenderizarSimple(registros, 'nombres', tablaChoferes, 'Chofer');
         
-        errorEl.textContent = ''; // Limpiar mensaje de carga/error
+        errorEl.textContent = 'Datos analíticos cargados.'; 
 
     } catch (error) {
         console.error("Error al cargar resumen analítico:", error);
@@ -301,7 +386,7 @@ const cargarContenidoHTML = () => {
                 <button data-section="vehiculos">🚛 Asignar Vehículo</button>
                 <button data-section="materiales">💎 Materiales</button>
                 <button data-section="canteras">📍 Canteras</button>
-                <button data-section="proyectos">🏁 Proyectos</p>
+                <button data-section="proyectos">🏁 Proyectos</button>
             </div>
             <div id="admin-content" class="admin-content"></div>
         </div>`;
@@ -350,13 +435,14 @@ const cargarContenidoHTML = () => {
         <div class="card">
             <h2>📈 Resumen Analítico de Transporte</h2>
             <p>Muestra el volumen total ($\text{m}^3$) y el número de viajes por categorías.</p>
-            <div class="analitics-container">
-                <div class="analitics-section">
-                    <h3>🏁 Por Proyecto</h3>
-                    <div style="overflow-x:auto;">
-                        <table class="analitics-table" id="tablaProyectos"></table>
-                    </div>
+            
+            <div class="analitics-section" style="grid-column: 1 / -1; margin-bottom: 20px;">
+                <h3>🏁 Proyectos vs. Materiales Suministrados</h3>
+                <div style="overflow-x:auto;">
+                    <table class="analitics-table" id="tablaProyectoMaterial"></table>
                 </div>
+            </div>
+            <div class="analitics-container">
                 <div class="analitics-section">
                     <h3>💎 Por Material</h3>
                     <div style="overflow-x:auto;">
@@ -804,10 +890,31 @@ const inicializarApp = async () => {
             }
             // Si vamos a Análisis, cargar el resumen
             if (tab.dataset.tab === 'tab-analytics') {
-                cargarResumenAnalitico();
+                // Obtener filtros actuales de Reportes para sincronizar el Análisis
+                const filtros = obtenerFiltrosReporte();
+                cargarResumenAnalitico(filtros);
             }
         });
     });
+
+    // Función auxiliar para obtener los filtros de Reportes (para sincronización)
+    const obtenerFiltrosReporte = () => {
+        const fechaInicioVal = fechaInicio.value;
+        const fechaFinVal = fechaFin.value;
+        const material = document.getElementById('filtroMaterial').value;
+        const cantera = document.getElementById('filtroCantera').value;
+        const proyecto = document.getElementById('filtroProyecto').value;
+        const chofer = document.getElementById('filtroChofer').value;
+
+        let filtros = [];
+        if (fechaInicioVal) filtros.push(where("fecha", ">=", fechaInicioVal));
+        if (fechaFinVal) filtros.push(where("fecha", "<=", fechaFinVal));
+        if (material) filtros.push(where("material", "==", material));
+        if (cantera) filtros.push(where("cantera", "==", cantera));
+        if (proyecto) filtros.push(where("proyecto", "==", proyecto));
+        if (chofer) filtros.push(where("nombres", "==", chofer));
+        return filtros;
+    };
 
     // 9. Lógica para los filtros de Reportes
     document.getElementById('btnPrint').addEventListener('click', () => {
@@ -889,20 +996,12 @@ const inicializarApp = async () => {
 
 
     document.getElementById('btnFiltrar').addEventListener('click', () => {
-        const fechaInicioVal = fechaInicio.value;
-        const fechaFinVal = fechaFin.value;
-        const material = document.getElementById('filtroMaterial').value;
-        const cantera = document.getElementById('filtroCantera').value;
-        const proyecto = document.getElementById('filtroProyecto').value;
-        const chofer = document.getElementById('filtroChofer').value;
-        let filtros = [];
-        if (fechaInicioVal) filtros.push(where("fecha", ">=", fechaInicioVal));
-        if (fechaFinVal) filtros.push(where("fecha", "<=", fechaFinVal));
-        if (material) filtros.push(where("material", "==", material));
-        if (cantera) filtros.push(where("cantera", "==", cantera));
-        if (proyecto) filtros.push(where("proyecto", "==", proyecto));
-        if (chofer) filtros.push(where("nombres", "==", chofer));
+        const filtros = obtenerFiltrosReporte();
+
         cargarRegistros(filtros);
+        
+        // Sincronizar el Análisis
+        cargarResumenAnalitico(filtros);
     });
 
     document.getElementById('btnMostrarTodo').addEventListener('click', () => {
@@ -915,7 +1014,10 @@ const inicializarApp = async () => {
         document.getElementById('filtroCantera').selectedIndex = 0;
         document.getElementById('filtroProyecto').selectedIndex = 0;
         document.getElementById('filtroChofer').selectedIndex = 0;
-        cargarRegistros();
+        
+        // Cargar Reportes y Análisis sin filtros
+        cargarRegistros([]);
+        cargarResumenAnalitico([]);
     });
 
     // 10. Lógica del formulario de Registro
@@ -998,6 +1100,7 @@ const inicializarApp = async () => {
                     await deleteDoc(doc(db, "registros", docId));
                     await cargarRegistros(); // Recargar tabla
                     await cargarKPIs(); // Recargar estadísticas
+                    await cargarResumenAnalitico(); // Recargar resumen analítico
                 } catch (error) {
                     console.error("Error al borrar registro:", error);
                     alert("Error al borrar registro.");

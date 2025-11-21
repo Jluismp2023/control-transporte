@@ -297,6 +297,22 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     font-size: 0.95em;
 }
 
+.analitics-group-header td {
+    background-color: #eef;
+    font-weight: bold;
+    border-top: 1px solid var(--color-borde);
+}
+
+.analitics-sub-item td:first-child {
+    padding-left: 20px; /* Indentación para los materiales */
+    font-style: italic;
+}
+
+.analitics-sub-total td {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
 .analitics-total td {
     background-color: #eef;
     font-weight: bold;
