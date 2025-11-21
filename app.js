@@ -40,7 +40,7 @@ const formatDate = (date) => {
 // LÓGICA DE ROLES
 // =========================================================================
 
-// Configuración de roles (Se puede expandir con claims de Firebase si la aplicación crece)
+// Configuración de roles
 const ADMIN_EMAILS = ['admin@obreco.com', 'otroadmin@obreco.com']; // Ejemplo de administradores
 const OBSERVER_EMAIL = 'obreco@observador.com';
 
@@ -356,6 +356,7 @@ const cargarContenidoHTML = () => {
     // Obtener rol actual para decidir qué contenido cargar
     const userRole = getUserRole(auth.currentUser);
     const isAdminOrUser = userRole !== 'observer'; 
+    const isObserver = userRole === 'observer'; // Para simplificar la lógica
 
     // HTML para el Panel de Inicio (Solo Volumen Semanal y Mensual)
     document.getElementById('tab-inicio').innerHTML = `
@@ -373,9 +374,10 @@ const cargarContenidoHTML = () => {
 
         <div class="card">
             <div class="quick-links">
+                ${!isObserver ? `
                 <button class="quick-link-btn" data-tab="tab-registro">
                     <span>🚚</span> Registro
-                </button>
+                </button>` : ''}
                 <button class="quick-link-btn" data-tab="tab-summary">
                     <span>📊</span> Reportes
                 </button>
@@ -924,13 +926,17 @@ const inicializarApp = async (user) => {
     const fechaInicio = document.getElementById('fechaInicio');
     const fechaFin = document.getElementById('fechaFin');
 
-    // Ocultar botón BD y secciones de administración si es Observador
+    // Ocultar botón BD y Registro si es Observador
     const userRole = getUserRole(user);
     if (userRole === 'observer') {
         const bdButton = document.querySelector('.tab-button[data-tab="tab-admin"]');
         if (bdButton) bdButton.remove();
         const quickBdButton = document.querySelector('.quick-link-btn[data-tab="tab-admin"]');
         if (quickBdButton) quickBdButton.remove();
+        const registroButton = document.querySelector('.tab-button[data-tab="tab-registro"]');
+        if (registroButton) registroButton.remove();
+        const quickRegistroButton = document.querySelector('.quick-link-btn[data-tab="tab-registro"]');
+        if (quickRegistroButton) quickRegistroButton.remove();
         
         // Deshabilitar formulario de Registro para observadores
         if (transporteForm) {
