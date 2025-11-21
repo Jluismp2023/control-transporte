@@ -113,8 +113,12 @@ const renderizarRegistros = (registros) => {
 // Función para cargar registros en la tabla de reportes
 const cargarRegistros = async (filtros = []) => {
     const registrosBody = document.getElementById('registrosBody');
+    // Asegurarse de que el elemento exista antes de intentar manipularlo
+    if (!registrosBody) return; 
+
     registrosBody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding: 20px;">Cargando registros...</td></tr>`;
-    document.getElementById('registrosTfoot').innerHTML = '';
+    const registrosTfoot = document.getElementById('registrosTfoot');
+    if (registrosTfoot) registrosTfoot.innerHTML = '';
 
     let q = query(collection(db, "registros"));
     if (filtros.length > 0) { 
@@ -130,9 +134,11 @@ const cargarRegistros = async (filtros = []) => {
     }
 };
 
-// Función para calcular y mostrar el resumen analítico (NUEVA)
+// Función para calcular y mostrar el resumen analítico
 const cargarResumenAnalitico = async () => {
     const errorEl = document.getElementById('analitics-error');
+    if (!errorEl) return; // Si no existe la pestaña, salir
+    
     errorEl.textContent = 'Cargando datos analíticos...';
 
     const tablaProyectos = document.getElementById('tablaProyectos');
@@ -141,9 +147,9 @@ const cargarResumenAnalitico = async () => {
     
     // Inicializar tablas con mensaje de carga
     const generarCarga = (titulo) => `<thead><tr><th>${titulo}</th><th>Volumen Total (m³)</th><th># Viajes</th></tr></thead><tbody><tr><td colspan="3" style="text-align:center;">Cargando...</td></tr></tbody>`;
-    tablaProyectos.innerHTML = generarCarga("Proyecto");
-    tablaMateriales.innerHTML = generarCarga("Material");
-    tablaChoferes.innerHTML = generarCarga("Chofer");
+    if (tablaProyectos) tablaProyectos.innerHTML = generarCarga("Proyecto");
+    if (tablaMateriales) tablaMateriales.innerHTML = generarCarga("Material");
+    if (tablaChoferes) tablaChoferes.innerHTML = generarCarga("Chofer");
     
     try {
         const q = query(collection(db, "registros"));
@@ -152,13 +158,16 @@ const cargarResumenAnalitico = async () => {
         
         if (registros.length === 0) {
             errorEl.textContent = 'No hay registros de viajes para analizar.';
-            tablaProyectos.innerHTML = generarCarga("Proyecto").replace('Cargando...', 'Sin datos');
-            tablaMateriales.innerHTML = generarCarga("Material").replace('Cargando...', 'Sin datos');
-            tablaChoferes.innerHTML = generarCarga("Chofer").replace('Cargando...', 'Sin datos');
+            const sinDatos = (titulo) => generarCarga(titulo).replace('Cargando...', 'Sin datos');
+            if (tablaProyectos) tablaProyectos.innerHTML = sinDatos("Proyecto");
+            if (tablaMateriales) tablaMateriales.innerHTML = sinDatos("Material");
+            if (tablaChoferes) tablaChoferes.innerHTML = sinDatos("Chofer");
             return;
         }
 
         const agruparYRenderizar = (data, campoAgrupacion, tablaElemento, tituloColumna) => {
+            if (!tablaElemento) return;
+            
             const resumen = data.reduce((acc, registro) => {
                 const key = registro[campoAgrupacion] || 'SIN ESPECIFICAR';
                 const volumen = parseFloat(registro.volumen) || 0;
@@ -292,7 +301,7 @@ const cargarContenidoHTML = () => {
                 <button data-section="vehiculos">🚛 Asignar Vehículo</button>
                 <button data-section="materiales">💎 Materiales</button>
                 <button data-section="canteras">📍 Canteras</button>
-                <button data-section="proyectos">🏁 Proyectos</button>
+                <button data-section="proyectos">🏁 Proyectos</p>
             </div>
             <div id="admin-content" class="admin-content"></div>
         </div>`;
@@ -319,6 +328,19 @@ const cargarContenidoHTML = () => {
                 <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                 <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
                 <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
+            </div>
+        </div>
+
+        <div class="card"> 
+            <div class="print-only report-title">TRANSPORTE DE MATERIALES PETREOS</div> 
+            <div id="print-filter-summary" class="print-only"></div> 
+            <h2 class="no-print">Historial de Viajes</h2>
+            <div style="overflow-x:auto;">
+                <table id="registrosTabla">
+                    <thead><tr><th>Item</th><th>Fecha</th><th>Nombres</th><th>Placa</th><th>Material</th><th>Cantera</th><th>Proyecto</th><th>Observaciones</th><th>Volumen</th><th># Viajes</th><th>Vol. Total</th><th class="action-cell">Acciones</th></tr></thead>
+                    <tbody id="registrosBody"></tbody>
+                    <tfoot id="registrosTfoot"></tfoot>
+                </table>
             </div>
         </div>`;
     
