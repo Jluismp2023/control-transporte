@@ -327,6 +327,20 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     width: 100%;
 }
 
+/* ----------------------------------------------------------- */
+/* DEFINICIÓN DE ANCHOS Y COMPORTAMIENTO DE CELDA INDIVIDUAL */
+/* ----------------------------------------------------------- */
+
+#registrosTabla thead th, 
+#registrosTabla tbody td {
+    /* Regla general: permitir salto de línea para el contenido */
+    white-space: normal;
+    word-break: break-word;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Solo visible si el contenido no cabe en la altura máxima */
+}
+
 #registrosTabla thead th:nth-child(1), 
 #registrosTabla tbody td:nth-child(1) { /* Item */
     width: 40px; 
@@ -334,7 +348,7 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 #registrosTabla thead th:nth-child(2), 
 #registrosTabla tbody td:nth-child(2) { /* Fecha */
-    width: 80px; 
+    width: 90px; 
 }
 #registrosTabla thead th:nth-child(3), 
 #registrosTabla tbody td:nth-child(3) { /* Nombres */
@@ -347,19 +361,19 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 }
 #registrosTabla thead th:nth-child(5), 
 #registrosTabla tbody td:nth-child(5) { /* Material */
-    width: 100px;
+    width: 120px; /* Aumentado */
 }
 #registrosTabla thead th:nth-child(6), 
 #registrosTabla tbody td:nth-child(6) { /* Cantera */
-    width: 100px;
+    width: 120px; /* Aumentado */
 }
 #registrosTabla thead th:nth-child(7), 
 #registrosTabla tbody td:nth-child(7) { /* Proyecto */
-    width: 150px; /* Aumentado */
+    width: 160px; /* Aumentado */
     white-space: normal; /* Permitir salto de línea */
 }
 #registrosTabla thead th:nth-child(8), 
-#registrosTabla tbody td:nth-child(8) { /* Observaciones (Aún más espacio) */
+#registrosTabla tbody td:nth-child(8) { /* Observaciones */
     width: 300px; /* Aumentado significativamente */
     white-space: normal; /* Permitir salto de línea */
 }
@@ -367,41 +381,35 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 #registrosTabla tbody td:nth-child(9) { /* Volumen */
     width: 70px;
     text-align: right;
+    white-space: nowrap; /* No debe saltar de línea */
 }
 #registrosTabla thead th:nth-child(10), 
 #registrosTabla tbody td:nth-child(10) { /* # Viajes */
     width: 50px; 
     text-align: center;
+    white-space: nowrap; /* No debe saltar de línea */
 }
 #registrosTabla thead th:nth-child(11), 
 #registrosTabla tbody td:nth-child(11) { /* Vol. Total */
     width: 80px;
     text-align: right;
+    white-space: nowrap; /* No debe saltar de línea */
 }
-/* La columna de Acciones (12) se ajustará automáticamente */
-
-/* Reglas de Desbordamiento para permitir varias líneas sin que la fila sea gigante */
-#registrosTabla tbody td {
-    white-space: nowrap; /* Regla general, pero anulada abajo */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: top; /* Alinear el texto de varias líneas a la parte superior */
+#registrosTabla thead th:nth-child(12), 
+#registrosTabla tbody td:nth-child(12) { /* Acciones */
+    width: 75px; 
+    text-align: center;
+    white-space: nowrap;
 }
 
-/* Permitir que estas celdas crezcan en altura hasta un límite */
+/* Reglas de Desbordamiento para limitar la altura de las celdas de texto */
 #registrosTabla tbody td:nth-child(3), /* Nombres */
+#registrosTabla tbody td:nth-child(5), /* Material */
+#registrosTabla tbody td:nth-child(6), /* Cantera */
 #registrosTabla tbody td:nth-child(7), /* Proyecto */
 #registrosTabla tbody td:nth-child(8) { /* Observaciones */
-    white-space: normal;
-    word-break: break-word;
     max-height: 50px; /* Limitar la altura de la celda a ~2-3 líneas */
-    /* El overflow: hidden ya está aplicado en la regla general de td, lo que cortará el exceso */
-}
-/* Asegurar que las celdas numéricas se alinean a la derecha */
-#registrosTabla tbody td:nth-child(9), 
-#registrosTabla tbody td:nth-child(11) {
-    text-align: right;
-    white-space: nowrap;
+    overflow: hidden; /* Ocultar si excede la altura */
 }
 
 
