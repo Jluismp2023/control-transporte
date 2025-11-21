@@ -27,7 +27,7 @@ body {
     box-sizing: border-box;
 }
 
-/* --- HEADER RESPONSIVO MODIFICADO --- */
+/* --- HEADER RESPONSIVO --- */
 .header-container { 
     display: flex; 
     justify-content: space-between; 
@@ -133,39 +133,36 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
 /* Form buttons layout */
 .form-buttons { display: flex; gap: 10px; }
 
-/* Filter form layout (ACTUALIZADO para usar 2 o 3 columnas en desktop) */
+/* Filter form layout (ACTUALIZADO y COMPACTO) */
 .filter-form { 
     display: flex; 
-    gap: 15px; /* Aumentar el espacio entre elementos */
+    gap: 15px; 
     align-items: center; 
     justify-content: flex-start; 
     flex-wrap: wrap; 
-    /* Contenedor padre con una cuadrícula implícita */
+    /* Usar 4 columnas en desktop */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 2 o 3 columnas que se autoajustan */
-    
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
 }
 .filter-form label { 
     font-weight: bold; 
-    /* Eliminar flex-basis: 100% para que la etiqueta se alinee con el input/select */
-    grid-column: span 1; /* Cada etiqueta ocupa una columna */
+    grid-column: span 1; 
     margin-top: 0; 
-    align-self: center; /* Centrar verticalmente con el input */
+    align-self: center; 
+    min-width: 100px; 
 }
 
-/* Aplicar un estilo de grid de 2 columnas solo a los grupos input/select */
+/* Permitir que los campos de entrada/selección ocupen el espacio de su columna */
 .filter-form > div, 
 .filter-form > input, 
 .filter-form > select {
-    grid-column: span 1; /* Ocupa una columna */
-    min-width: 100%; /* El elemento ocupa todo el espacio de su columna */
+    grid-column: span 1; 
+    min-width: 100%; 
 }
 
-/* Elementos especiales que deben ocupar más espacio (como los botones) */
-.filter-form button {
-    /* Los botones Filtar/Mostrar Todo/Imprimir/Exportar se apilan mejor al final si son flexibles */
-    grid-column: span 1; 
-    min-width: 100%;
+/* Ajuste para el label del filtro por mes */
+.filter-form label[for="filtroMes"] {
+    min-width: unset;
 }
 
 /* Ajuste para la línea de separación (span) */
@@ -175,6 +172,12 @@ tfoot td { font-weight: bold; background-color: #f2f7ff; }
     height: 1px;
     background-color: var(--color-borde);
     border-left: none !important;
+}
+
+/* Botones: Se mantienen al final */
+.filter-form button {
+    grid-column: span 1; 
+    min-width: 100%;
 }
 
 

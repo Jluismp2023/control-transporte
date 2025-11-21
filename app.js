@@ -50,8 +50,7 @@ onAuthStateChanged(auth, (user) => {
 
 
 // =========================================================================
-// CORRECCIÓN CLAVE: Mover cargarRegistros y renderizarRegistros al ámbito global
-// para que puedan ser llamadas por administrarListaSimple sin ReferenceError
+// FUNCIONES GLOBALES (renderizarRegistros y cargarRegistros)
 // =========================================================================
 
 // Función para renderizar los registros en la tabla
@@ -131,11 +130,8 @@ const cargarRegistros = async (filtros = []) => {
     }
 };
 
-// =========================================================================
-// CONTINUACIÓN DEL CÓDIGO 
-// =========================================================================
 
-// Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO)
+// Función para cargar el HTML dinámico de las secciones (Volumen de Hoy ELIMINADO y Botón Excel ELIMINADO)
 const cargarContenidoHTML = () => {
     
     // HTML para el Panel de Inicio (Solo Volumen Semanal y Mensual)
@@ -206,7 +202,7 @@ const cargarContenidoHTML = () => {
             <div id="admin-content" class="admin-content"></div>
         </div>`;
         
-    // HTML para la sección de Reportes (con botón "Volver")
+    // HTML para la sección de Reportes (Botón Exportar ELIMINADO)
     document.getElementById('tab-summary').innerHTML = `
         <button class="btn-back-to-home no-print">🏠 Volver al Panel</button>
         
@@ -228,7 +224,6 @@ const cargarContenidoHTML = () => {
                 <button id="btnFiltrar" class="btn-primary">Filtrar</button>
                 <button id="btnMostrarTodo" class="btn-secondary">Mostrar Todo</button>
                 <button id="btnPrint" class="btn-primary">🖨️ Imprimir</button>
-                <button id="btnExportarExcel" class="btn-success">📄 Exportar a Excel</button>
             </div>
         </div>
 
@@ -708,21 +703,7 @@ const inicializarApp = async () => {
         window.print();
     });
     
-    document.getElementById('btnExportarExcel').addEventListener('click', () => {
-        if (registrosFiltrados.length === 0) {
-            alert("No hay datos para exportar. Por favor, realiza una búsqueda primero.");
-            return;
-        }
-        const tablaOriginal = document.getElementById('registrosTabla');
-        const tablaClonada = tablaOriginal.cloneNode(true);
-        Array.from(tablaClonada.querySelectorAll('.action-cell')).forEach(celda => celda.remove());
-        const hojaDeCalculo = XLSX.utils.table_to_sheet(tablaClonada, {raw: true});
-        hojaDeCalculo['!cols'] = [ { wch: 5 }, { wch: 12 }, { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 10 } ];
-        const libro = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(libro, hojaDeCalculo, 'Reporte');
-        const nombreArchivo = `Reporte_Transporte_${new Date().toISOString().slice(0,10)}.xlsx`;
-        XLSX.writeFile(libro, nombreArchivo);
-    });
+    // NOTA: Se eliminó el bloque de código de Exportar a Excel.
 
     // --- LÓGICA DE FILTROS DE FECHA EXCLUYENTE ---
     filtroMes.addEventListener('change', () => {
