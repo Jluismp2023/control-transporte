@@ -334,7 +334,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 resetForm(); 
                 // Después de la actualización masiva, recargar todo lo necesario
                 await render();
-                await cargarRegistros(); // Recargar tabla de reportes
+                await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de editar/agregar
                 
             } catch (error) {
                 console.error(`Error al guardar ${nombreSingular}:`, error);
@@ -354,7 +354,7 @@ const administrarListaSimple = async (collectionName, formId, inputId, listaId, 
                 try {
                     await deleteDoc(doc(db, collectionName, id));
                     await render();
-                    await cargarRegistros(); // Recargar tabla de reportes
+                    await cargarRegistros(); // CORRECCIÓN: Recargar tabla de reportes después de borrar
                 } catch (error) {
                     console.error(`Error al borrar ${nombreSingular}:`, error);
                     alert(`Error al borrar ${nombreSingular}.`);
