@@ -48,7 +48,7 @@ onAuthStateChanged(auth, (user) => {
 // Función para cargar el HTML dinámico de las secciones
 const cargarContenidoHTML = () => {
     
-    // HTML para el Panel de Inicio
+    // HTML para el Panel de Inicio (Botones de Acceso Directo Actualizados)
     document.getElementById('tab-inicio').innerHTML = `
         
         <div class="kpi-container">
@@ -69,13 +69,13 @@ const cargarContenidoHTML = () => {
         <div class="card">
             <div class="quick-links">
                 <button class="quick-link-btn" data-tab="tab-registro">
-                    <span>🚚</span> Nuevo Registro
+                    <span>🚚</span> Registro
                 </button>
                 <button class="quick-link-btn" data-tab="tab-summary">
-                    <span>📊</span> Ver Reportes
+                    <span>📊</span> Reportes
                 </button>
                 <button class="quick-link-btn" data-tab="tab-admin">
-                    <span>⚙️</span> Administrar Datos
+                    <span>⚙️</span> BD
                 </button>
             </div>
         </div>
@@ -489,7 +489,7 @@ const administrarChoferesVehiculos = async () => {
     await render(); // Carga inicial
 };
 
-// --- FUNCIÓN DE KPIs MODIFICADA ---
+// --- FUNCIÓN DE KPIs ---
 const cargarKPIs = async () => {
     try {
         // 1. Obtener referencias a los elementos del DOM
